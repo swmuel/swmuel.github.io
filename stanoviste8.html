@@ -40,15 +40,19 @@
   .option.correct { border-color: #10b981 !important; background: rgba(16,185,129,0.4); animation: bounce 0.5s; }
   .option.wrong { border-color: #ef4444 !important; background: rgba(239,68,68,0.4); animation: shake 0.5s; }
   .option.disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+
   @keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-20px); } 60% { transform: translateY(-10px); } }
   @keyframes shake { 0%, 100% { transform: translateX(0); } 10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); } 20%, 40%, 60%, 80% { transform: translateX(5px); } }
+
   #status { margin-top: 25px; font-size: 1.2em; min-height: 100px; line-height: 1.5; background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; }
+
   button { font-size: 22px; padding: 14px 30px; margin: 12px; background: #10b981; border: none; border-radius: 20px; color: white; cursor: pointer; transition: all 0.3s; }
   button:hover { background: #34d399; transform: scale(1.08); }
   button:disabled { background: #666; cursor: not-allowed; transform: none; }
+
   @media (max-width: 500px) { .options { gap: 20px; } .option { width: 150px; height: 150px; font-size: 4em; } }
 
-  /* overlay prompt */
+  /* NAME OVERLAY */
   #nameOverlay {
     position: fixed;
     inset:0;
@@ -61,6 +65,7 @@
     color: white;
     font-size: 1.3em;
   }
+
   #nameOverlay input {
     font-size: 1.2em;
     padding: 10px 15px;
@@ -69,20 +74,60 @@
     margin-top: 15px;
     text-align: center;
   }
+
   #nameOverlay button {
     margin-top: 15px;
     font-size: 1.2em;
     padding: 10px 20px;
     border-radius: 10px;
   }
+
+  /* RETURN OVERLAY */
+  .overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.9);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:2000;
+  }
+
+  .overlay-box{
+    background:#064e3b;
+    padding:30px;
+    border-radius:20px;
+    text-align:center;
+    box-shadow:0 10px 40px rgba(0,0,0,0.6);
+  }
+
+  .overlay-box button{
+    background:#10b981;
+    border:none;
+    padding:10px 20px;
+    border-radius:10px;
+    font-weight:bold;
+    cursor:pointer;
+  }
 </style>
 </head>
 <body>
 
+<!-- NAME OVERLAY -->
 <div id="nameOverlay">
   <div>Prosím, zadaj svoje meno:</div>
   <input type="text" id="playerNameInput" placeholder="Tvoje meno">
   <button onclick="submitName()">Potvrdiť</button>
+</div>
+
+<!-- RETURN OVERLAY -->
+<div id="returnOverlay" class="overlay" style="display:none;">
+  <div class="overlay-box">
+    <h2>🏠 Vrátiť sa na mapu?</h2>
+    <p>Chceš ukončiť Dúhový vodopád?</p>
+    <button onclick="confirmReturn()">Áno</button>
+    <button onclick="closeReturnOverlay()" style="background:#ef4444; margin-left:10px;">Zostať</button>
+  </div>
 </div>
 
 <h1>🌈 Dúhový vodopád</h1>
@@ -175,6 +220,7 @@ function checkAnswer(selected){
   const correctOption = document.querySelector('.option[data-index="'+task.correct+'"]');
   const selectedOption = document.querySelector('.option[data-index="'+selected+'"]');
   document.querySelectorAll('.option').forEach(el=>el.classList.add('disabled'));
+
   if(selected==task.correct){
     score++;
     selectedOption.classList.add('correct');
@@ -195,9 +241,18 @@ function checkAnswer(selected){
   }
 }
 
+/* NEW MODAL LOGIC */
 function returnToMap(){
+  document.getElementById("returnOverlay").style.display = "flex";
+}
+
+function closeReturnOverlay(){
+  document.getElementById("returnOverlay").style.display = "none";
+}
+
+function confirmReturn(){
   finishStation(score);
-  if(confirm("Vrátiť sa na mapu?")) window.location.href="index.html";
+  window.location.href = "index.html";
 }
 
 function finishStation(finalScore){
@@ -211,19 +266,20 @@ function finishStation(finalScore){
   const playerId = localStorage.getItem("playerId");
 
   if(!playerName || !playerId){
-    console.error("Meno alebo ID hráča chýba! Overlay musí byť vyplnený.");
+    console.error("Meno alebo ID hráča chýba!");
     return;
   }
 
   const payload = {name: playerName, playerId, station: stationId, score: finalScore || score};
   const url = API + "?" + new URLSearchParams(payload).toString();
-  statusEl.innerHTML += "<br>📤 Odosielam dáta do Dúhového vodopádu...";
+
+  statusEl.innerHTML += "<br>📤 Odosielam dáta...";
+
   fetch(url,{method:"GET",mode:"no-cors"})
-    .then(()=>console.log("✅ Údaje odoslané - Stanovisko 8"))
+    .then(()=>console.log("✅ Odoslané"))
     .catch(err=>console.error(err));
 }
 
-// Ak meno už existuje, preskoč overlay
 if(localStorage.getItem("playerName")){
   overlay.style.display='none';
   startGame();
