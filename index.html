@@ -273,11 +273,13 @@ function closeReset(){
 }
 
 // CONFIRM RESET
-async function confirmReset(){
+function confirmReset(){
     const name = localStorage.getItem("playerName") || "unknown";
     const id = localStorage.getItem("playerId") || "unknown";
 
-    await fetch(API + "?name=" + encodeURIComponent(name + " (KONIEC)") + "&playerId=" + id + "&station=-1&score=" + visited.size);
+    // pošli request ale nečakaj naň
+    fetch(API + "?name=" + encodeURIComponent(name + " (KONIEC)") + "&playerId=" + id + "&station=-1&score=" + visited.size)
+      .catch(()=>{});
 
     localStorage.clear();
     location.reload();
