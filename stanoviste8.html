@@ -201,16 +201,23 @@ function returnToMap(){
 }
 
 function finishStation(finalScore){
-  const stationId=8;
-  let visited=JSON.parse(localStorage.getItem("visitedStations")||"[]");
+  const stationId = 8;
+  let visited = JSON.parse(localStorage.getItem("visitedStations") || "[]");
   if(!Array.isArray(visited)) visited=[];
   if(!visited.includes(stationId)) visited.push(stationId);
   localStorage.setItem("visitedStations",JSON.stringify(visited));
+
   const playerName = localStorage.getItem("playerName");
   const playerId = localStorage.getItem("playerId");
-  const payload={name:playerName,playerId,station:stationId,score:finalScore||score};
-  const url=API+"?"+new URLSearchParams(payload).toString();
-  statusEl.innerHTML+="<br>📤 Odosielam dáta do Dúhového vodopádu...";
+
+  if(!playerName || !playerId){
+    console.error("Meno alebo ID hráča chýba! Overlay musí byť vyplnený.");
+    return;
+  }
+
+  const payload = {name:playerName,playerId,station:stationId,score:finalScore||score};
+  const url = API + "?" + new URLSearchParams(payload).toString();
+  statusEl.innerHTML += "<br>📤 Odosielam dáta do Dúhového vodopádu...";
   fetch(url,{method:"GET",mode:"no-cors"})
     .then(()=>console.log("✅ Údaje odoslané - Stanovisko 8"))
     .catch(err=>console.error(err));
