@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌲 Čarovný Les 🌲</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;font-family:'Inter',system-ui;-webkit-tap-highlight-color:transparent;}
+body{
+  margin:0;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  color:white;
+  overflow-x:hidden;
+  background-image:url("https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fi.pinimg.com%2Foriginals%2Ff8%2F9f%2Fa3%2Ff89fa3316c37b3f2479d3301c0a09cd8.jpg&f=1&nofb=1&ipt=1268c46c7e0b976f68f178edfd65468e629252abc3eb588ff05bb2dc44ed4d18");
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  padding-bottom:20px;
+}
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.35);
+  z-index:-1;
+}
+
+header{
+  text-align:center;
+  padding:clamp(15px,5vw,30px) clamp(15px,5vw,20px) clamp(10px,3vw,10px);
+  width:100%;
+}
+h1{ 
+  margin:0; 
+  color:#fbbf24; 
+  font-size:clamp(24px,8vw,42px); 
+  line-height:1.1;
+}
+.subtitle{ 
+  color:#d1fae5; 
+  margin-top:clamp(5px,2vw,8px); 
+  font-size:clamp(14px,4vw,16px);
+}
+.progress-wrapper{
+  margin-top:clamp(10px,3vw,20px);
+  background:#022c22;
+  border-radius:999px;
+  overflow:hidden;
+  height:clamp(12px,3vw,16px);
+}
+.progress-bar{ 
+  height:100%; 
+  width:0%; 
+  background:linear-gradient(90deg,#fbbf24,#f59e0b); 
+  transition:.4s cubic-bezier(0.4,0,0.2,1);
+}
+.progress-text{ 
+  margin-top:clamp(4px,1.5vw,6px); 
+  font-size:clamp(13px,3.5vw,14px); 
+  color:#fde68a; 
+  font-weight:500;
+}
+
+.board{
+  width:95vw;
+  max-width:clamp(350px,95vw,900px);
+  margin-top:clamp(20px,5vw,30px);
+  padding:clamp(25px,8vw,60px) clamp(20px,6vw,40px) clamp(40px,10vw,70px);
+  border-radius:clamp(20px,6vw,30px);
+  background:linear-gradient(180deg,#9a6b3f,#7a512c);
+  box-shadow:0 clamp(15px,4vw,30px) clamp(40px,8vw,80px) rgba(0,0,0,.5),inset 0 6px 20px rgba(255,255,255,.15);
+  border:clamp(4px,1vw,8px) solid #5b3b20;
+}
+
+.map{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(clamp(80px,18vw,120px),1fr));
+  gap:clamp(15px,4vw,60px) clamp(10px,2vw,20px);
+  justify-items:center;
+  align-items:center;
+  width:100%;
+  max-width:100%;
+}
+
+.station{
+  width:clamp(75px,16vw,120px);
+  height:clamp(75px,16vw,120px);
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:clamp(28px,7vw,52px);
+  cursor:pointer;
+  transition:all .25s cubic-bezier(0.4,0,0.2,1);
+  border:clamp(3px,0.8vw,4px) solid rgba(255,255,255,.6);
+  box-shadow:0 0 clamp(8px,2vw,15px) rgba(0,0,0,.5),0 0 clamp(6px,1.5vw,12px) rgba(255,255,255,.25);
+  user-select:none;
+  touch-action:manipulation;
+  min-height:75px;
+  min-width:75px;
+}
+.station:active{ transform:scale(0.95); }
+.station:hover{ 
+  transform:scale(1.12); 
+  box-shadow:0 0 clamp(12px,3vw,25px) #fde047,0 0 clamp(20px,5vw,40px) rgba(255,255,255,.5); 
+}
+.station.visited{ 
+  filter:brightness(1.3) drop-shadow(0 0 12px #fde047); 
+  box-shadow:0 0 clamp(12px,3vw,25px) #fde047,0 0 clamp(20px,5vw,40px) #fde047 !important; 
+}
+.station.visited:active{ transform:scale(1.05); }
+
+.label{ 
+  margin-top:clamp(6px,2vw,10px); 
+  background:rgba(0,0,0,.5);
+  padding:clamp(4px,1vw,5px) clamp(8px,2vw,12px);
+  border-radius:20px; 
+  font-size:clamp(11px,3vw,14px);
+  font-weight:500;
+  min-height:24px;
+  display:flex;
+  align-items:center;
+  line-height:1.2;
+}
+.level{ 
+  display:flex; 
+  flex-direction:column; 
+  align-items:center; 
+  gap:clamp(2px,1vw,4px);
+  touch-action:manipulation;
+}
+
+button.reset-btn{
+  margin-top:clamp(15px,4vw,20px);
+  background:#ef4444;
+  border:none;
+  padding:clamp(10px,3vw,12px) clamp(18px,5vw,22px);
+  border-radius:20px;
+  font-weight:600;
+  font-size:clamp(14px,4vw,16px);
+  cursor:pointer;
+  color:white;
+  transition:all .2s;
+}
+button.reset-btn:hover{ background:#f87171; transform:translateY(-1px); }
+button.reset-btn:active{ transform:translateY(0); }
+
+.firefly{
+  position:fixed;
+  width:clamp(4px,1.5vw,6px);
+  height:clamp(4px,1.5vw,6px);
+  background:#fef08a;
+  border-radius:50%;
+  box-shadow:0 0 8px #fef08a,0 0 20px #fde047;
+  animation:float 12s linear infinite;
+  opacity:.85;
+  pointer-events:none;
+}
+@keyframes float{
+  0%{transform:translateY(100vh) translateX(0) rotate(0deg); opacity:0;}
+  10%{opacity:1;}
+  100%{transform:translateY(-20vh) translateX(80px) rotate(360deg); opacity:0;}
+}
+
+@media (max-width:480px){
+  .map{ gap:clamp(12px,6vw,20px) clamp(8px,3vw,15px); }
+  .station{ min-height:70px; min-width:70px; }
+  header{ padding:15px 10px 10px; }
+}
+@media (min-width:768px) and (max-width:1024px){
+  .map{ grid-template-columns:repeat(4,1fr); gap:30px 15px; }
+}
+@media (max-width:768px) and (orientation:landscape){
+  .board{ padding:20px 15px 30px; margin-top:15px; }
+  header{ padding:15px 10px; }
+}
+</style>
+</head>
+<body>
+
+<div class="firefly" style="animation-delay:0s;animation-duration:12s;left:10%;"></div>
+<div class="firefly" style="animation-delay:-3s;animation-duration:15s;left:30%;"></div>
+<div class="firefly" style="animation-delay:-6s;animation-duration:18s;left:70%;"></div>
+<div class="firefly" style="animation-delay:-9s;animation-duration:14s;left:90%;"></div>
+
+<header>
+<h1>🌲 Čarovný Les 🌲</h1>
+<div class="subtitle">Objav všetky stanovištia!</div>
+<div class="progress-wrapper">
+  <div id="bar" class="progress-bar"></div>
+</div>
+<div id="progressText" class="progress-text">0 / 8 objavené</div>
+<button class="reset-btn" onclick="resetGame()">🔄 NOVÁ HRA (RESET)</button>
+</header>
+
+<div class="board">
+  <div class="map">
+    <div class="level">
+      <div class="station" data-id="1" style="background:#7c3aed">🦉</div>
+      <div class="label">Domček Sovy</div>
+    </div>
+    <div class="level">
+      <div class="station" data-id="2" style="background:#3b82f6">🏰</div>
+      <div class="label">Hrad písmen</div>
+    </div>
+    <div class="level">
+      <div class="station" data-id="3" style="background:#ec4899">🌸</div>
+      <div class="label">Rozprávková lúka</div>
+    </div>
+    <div class="level">
+      <div class="station" data-id="4" style="background:#06b6d4">🎵</div>
+      <div class="label">Jazierko melódie</div>
+    </div>
+    <div class="level">
+      <div class="station" data-id="5" style="background:#6366f1">🧙</div>
+      <div class="label">Čarodejnícka dielňa</div>
+    </div>
+    <div class="level">
+      <div class="station" data-id="6" style="background:#22c55e">🏃</div>
+      <div class="label">Lesná telocvičňa</div>
+    </div>
+    <div class="level">
+      <div class="station" data-id="7" style="background:#d97706">🐻</div>
+      <div class="label">Medvedí brloh</div>
+    </div>
+    <div class="level">
+      <div class="station" data-id="8" style="background:#f43f5e">🌈</div>
+      <div class="label">Dúhový vodopád</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = "https://script.google.com/macros/s/AKfycbx0t_2q7ohFvF4ZvTDEGEklEP6kNf5tFkAL89rb9ug2A5CV_a7XVMoOTyKeGjBNqjTY/exec";
+
+function initPlayer() {
+    // AK hráč NEEXISTUJE → vytvor nového
+    if(!localStorage.getItem("playerName")) {
+        const name = prompt("Zadaj meno NOVÉHO HRÁČA:");
+        
+        if(name && name.trim()) {
+            const playerId = crypto.randomUUID();
+            localStorage.setItem("playerName", name.trim());
+            localStorage.setItem("playerId", playerId);
+            
+            fetch(API + "?name=" + encodeURIComponent(name.trim()) + "&playerId=" + playerId + "&station=0&score=0")
+                .then(r => r.text())
+                .then(data => console.log("✅ Nový hráč:", data));
+        }
+
+        return;
+    }
+}
+
+const stations = document.querySelectorAll(".station");
+const bar = document.getElementById("bar");
+const text = document.getElementById("progressText");
+let visited = new Set(JSON.parse(localStorage.getItem("visitedStations") || "[]"));
+
+// START - PÝTA SA NA MENO
+initPlayer();
+
+// UPDATE PROGRESS
+function updateProgress() {
+    visited.forEach(id => {
+        const el = document.querySelector(`[data-id="${id}"]`);
+        if(el) el.classList.add("visited");
+    });
+    bar.style.width = (visited.size/8*100) + "%";
+    text.innerText = visited.size + " / 8 objavené";
+}
+
+// NAVIGÁCIA
+stations.forEach(s => {
+    s.addEventListener('click', () => {
+        const id = s.dataset.id;
+        window.location.href = "stanoviste" + id + ".html";
+    });
+});
+
+// RESET HRY
+async function resetGame() {
+    if(confirm("🔄 Naozaj chceš začať NOVÚ HRU?\nVšetky stanovištia + meno sa resetnú!")){
+        const oldName = localStorage.getItem("playerName") || "unknown";
+        const oldId = localStorage.getItem("playerId") || "unknown";
+        
+        // ODOSLA FINÁLNE SKÓRE
+        await fetch(API + "?name=" + encodeURIComponent(oldName + " (KONIEC)") + "&playerId=" + oldId + "&station=-1&score=" + visited.size);
+        
+        localStorage.clear();
+        window.location.reload();
+    }
+}
+
+// NAČÍTAJ PROGRESS (po initPlayer)
+setTimeout(updateProgress, 100);
+</script>
+</body>
+</html>
