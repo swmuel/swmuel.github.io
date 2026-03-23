@@ -67,6 +67,7 @@ body::before{
   border-radius:10px;
   font-weight:bold;
   cursor:pointer;
+  margin:5px;
 }
 
 /* HEADER */
@@ -154,13 +155,23 @@ h1{ color:#fbbf24; }
 
 <body>
 
-<!-- OVERLAY -->
+<!-- NAME OVERLAY -->
 <div id="nameOverlay" class="overlay">
   <div class="overlay-box">
     <h2>👤 Zadaj meno hráča</h2>
     <input type="text" id="nameInput" placeholder="Tvoje meno..." />
     <br>
     <button onclick="submitName()">Začať hru</button>
+  </div>
+</div>
+
+<!-- RESET OVERLAY -->
+<div id="resetOverlay" class="overlay" style="display:none;">
+  <div class="overlay-box">
+    <h2>⚠️ Resetovať hru?</h2>
+    <p>Stratíš celý progres.</p>
+    <button onclick="confirmReset()" style="background:#ef4444;">Resetovať</button>
+    <button onclick="closeReset()">Zrušiť</button>
   </div>
 </div>
 
@@ -222,13 +233,12 @@ function submitName(){
     localStorage.setItem("playerName", name);
     localStorage.setItem("playerId", playerId);
 
-    // SEND TO SHEET
     fetch(API + "?name=" + encodeURIComponent(name) + "&playerId=" + playerId + "&station=0&score=0");
 
     document.getElementById("nameOverlay").style.display = "none";
 }
 
-// ENTER KEY SUPPORT
+// ENTER KEY
 document.getElementById("nameInput").addEventListener("keypress", function(e){
     if(e.key === "Enter") submitName();
 });
@@ -252,17 +262,25 @@ stations.forEach(s=>{
     });
 });
 
-// RESET
-async function resetGame(){
-    if(confirm("Reset hry?")){
-        const name = localStorage.getItem("playerName") || "unknown";
-        const id = localStorage.getItem("playerId") || "unknown";
+// RESET (OPEN MODAL)
+function resetGame(){
+    document.getElementById("resetOverlay").style.display = "flex";
+}
 
-        await fetch(API + "?name=" + encodeURIComponent(name + " (KONIEC)") + "&playerId=" + id + "&station=-1&score=" + visited.size);
+// CLOSE MODAL
+function closeReset(){
+    document.getElementById("resetOverlay").style.display = "none";
+}
 
-        localStorage.clear();
-        location.reload();
-    }
+// CONFIRM RESET
+async function confirmReset(){
+    const name = localStorage.getItem("playerName") || "unknown";
+    const id = localStorage.getItem("playerId") || "unknown";
+
+    await fetch(API + "?name=" + encodeURIComponent(name + " (KONIEC)") + "&playerId=" + id + "&station=-1&score=" + visited.size);
+
+    localStorage.clear();
+    location.reload();
 }
 
 // START
