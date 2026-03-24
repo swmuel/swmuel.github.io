@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🏰 Hrad písmen - Stanovisko 2</title>
+
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #1e3a8a, #6d28d9, #0f172a);
+    color: white;
+    text-align: center;
+    padding: 30px;
+    margin: 0;
+  }
+
+  h1 {
+    font-size: 2.6em;
+    margin-bottom: 10px;
+  }
+
+  #letters, #dropZone {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 25px 0;
+  }
+
+  .letter {
+    width: 65px;
+    height: 65px;
+    background: #fbbf24;
+    color: black;
+    font-size: 2em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .letter:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 15px rgba(255,255,255,0.5);
+  }
+
+  .letter.dragging {
+    transform: scale(1.2);
+    opacity: 0.8;
+  }
+
+  .drop-slot {
+    width: 65px;
+    height: 65px;
+    border: 2px dashed rgba(255,255,255,0.5);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2em;
+    transition: background 0.3s, transform 0.2s;
+  }
+
+  .drop-slot.filled {
+    background: rgba(255,255,255,0.1);
+    transform: scale(1.05);
+  }
+
+  #status {
+    margin-top: 20px;
+    font-size: 1.3em;
+    min-height: 50px;
+    padding: 15px;
+    border-radius: 15px;
+    background: rgba(255,255,255,0.1);
+    transition: all 0.3s;
+  }
+
+  .success {
+    background: rgba(16,185,129,0.3);
+  }
+
+  .error {
+    background: rgba(239,68,68,0.3);
+  }
+
+  button {
+    font-size: 18px;
+    padding: 10px 20px;
+    margin-top: 20px;
+    border-radius: 12px;
+    border: none;
+    background: #10b981;
+    color: white;
+    cursor: pointer;
+  }
+
+  button:hover {
+    background: #34d399;
+  }
+
+  .bounce {
+    animation: bounce 0.4s;
+  }
+
+  @keyframes bounce {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+  }
+
+</style>
+</head>
+
+<body>
+
+<h1>🏰 Hrad písmen</h1>
+<p>Presuň písmená do správneho poradia a otvor hrad 🧠</p>
+
+<div id="dropZone"></div>
+<div id="letters"></div>
+
+<div id="status">Začni skladať slovo 👇</div>
+
+<button onclick="returnToMap()">🏠 Späť na mapu</button>
+
+<script>
+"use strict";
+
+const API = "https://script.google.com/macros/s/AKfycbx0t_2q7ohFvF4ZvTDEGEklEP6kNf5tFkAL89rb9ug2A5CV_a7XVMoOTyKeGjBNqjTY/exec";
+
+const words = ["DOM", "HRAD", "KNIHA", "AUTO", "STOL", "PES", "LUK"];
+
+let currentWord = "";
+let placed = [];
+
+const lettersDiv = document.getElementById("letters");
+const dropZone = document.getElementById("dropZone");
+const statusEl = document.getElementById("status");
+
+function shuffle(arr){
+  return arr.sort(()=>Math.random()-0.5);
+}
+
+function startGame(){
+  currentWord = words[Math.floor(Math.random()*words.length)];
+  placed = Array(currentWord.length).fill(null);
+
+  renderDropZone();
+  renderLetters();
+
+  setStatus("🏰 Skladaj slovo!");
+}
+
+function renderDropZone(){
+  dropZone.innerHTML = "";
+
+  for(let i=0;i<currentWord.length;i++){
+    const slot = document.createElement("div");
+    slot.className = "drop-slot";
+    slot.dataset.index = i;
+
+    slot.ondragover = e => e.preventDefault();
+
+    slot.ondrop = e => {
+      const letter = e.dataTransfer.getData("text");
+      placeLetter(i, letter);
+    };
+
+    dropZone.appendChild(slot);
+  }
+}
+
+function renderLetters(){
+  lettersDiv.innerHTML = "";
+
+  const shuffled = shuffle(currentWord.split(""));
+
+  shuffled.forEach(letter=>{
+    const div = document.createElement("div");
+    div.className = "letter";
+    div.textContent = letter;
+
+    div.draggable = true;
+
+    div.ondragstart = e => {
+      e.dataTransfer.setData("text", letter);
+      div.classList.add("dragging");
+    };
+
+    div.ondragend = () => {
+      div.classList.remove("dragging");
+    };
+
+    // touch support
+    div.ontouchstart = () => div.classList.add("dragging");
+    div.ontouchend = () => div.classList.remove("dragging");
+
+    lettersDiv.appendChild(div);
+  });
+}
+
+function placeLetter(index, letter){
+  placed[index] = letter;
+  updateSlots();
+  checkWord();
+}
+
+function updateSlots(){
+  const slots = document.querySelectorAll(".drop-slot");
+
+  slots.forEach((slot, i)=>{
+    slot.textContent = placed[i] || "";
+    slot.classList.toggle("filled", !!placed[i]);
+  });
+}
+
+function checkWord(){
+  if(placed.every(l => l !== null)){
+    const formed = placed.join("");
+
+    if(formed === currentWord){
+      setStatus("✅ Správne! Brána sa otvára 🏰✨", "success");
+      animateSuccess();
+
+      setTimeout(() => {
+        sendProgress(1);
+        startGame();
+      }, 1200);
+
+    } else {
+      setStatus("❌ Nesprávne, skús znova!", "error");
+      animateError();
+    }
+  }
+}
+
+function setStatus(text, type){
+  statusEl.textContent = text;
+  statusEl.className = "";
+
+  if(type === "success") statusEl.classList.add("success");
+  if(type === "error") statusEl.classList.add("error");
+}
+
+function animateSuccess(){
+  document.body.classList.add("bounce");
+  setTimeout(()=>document.body.classList.remove("bounce"), 400);
+}
+
+function animateError(){
+  statusEl.classList.add("bounce");
+  setTimeout(()=>statusEl.classList.remove("bounce"), 400);
+}
+
+/* GOOGLE SHEET */
+function sendProgress(score){
+  const stationId = 2; // ✅ UPRAVENÉ NA STANOVISKO 2
+
+  let visited = JSON.parse(localStorage.getItem("visitedStations") || "[]");
+  if(!visited.includes(stationId)) visited.push(stationId);
+  localStorage.setItem("visitedStations", JSON.stringify(visited));
+
+  const playerId = localStorage.getItem("playerId");
+  if(!playerId) return;
+
+  const payload = {
+    name: "unknown",
+    playerId,
+    station: stationId,
+    score
+  };
+
+  const url = API + "?" + new URLSearchParams(payload).toString();
+
+  fetch(url, {method:"GET", mode:"no-cors"})
+    .then(()=>console.log("sent"))
+    .catch(err=>console.error(err));
+}
+
+/* RETURN */
+function returnToMap(){
+  window.location.href = "index.html";
+}
+
+/* START */
+startGame();
+
+</script>
+
+</body>
+</html>
