@@ -20,6 +20,12 @@
     margin-bottom: 10px;
   }
 
+  #hint {
+    font-size: 1.2em;
+    margin-bottom: 15px;
+    opacity: 0.9;
+  }
+
   #letters, #dropZone {
     display: flex;
     justify-content: center;
@@ -45,13 +51,13 @@
   }
 
   .letter:hover {
-    transform: scale(1.1);
-    box-shadow: 0 0 15px rgba(255,255,255,0.5);
+    transform: scale(1.08);
+    box-shadow: 0 0 12px rgba(255,255,255,0.4);
   }
 
   .letter.dragging {
-    transform: scale(1.2);
-    opacity: 0.8;
+    transform: scale(1.15);
+    opacity: 0.85;
   }
 
   .drop-slot {
@@ -63,12 +69,23 @@
     align-items: center;
     justify-content: center;
     font-size: 2em;
-    transition: background 0.3s, transform 0.2s;
+    transition: background 0.2s, transform 0.2s;
   }
 
   .drop-slot.filled {
     background: rgba(255,255,255,0.1);
     transform: scale(1.05);
+  }
+
+  /* jemný bounce pri dropnutí */
+  .bounce {
+    animation: bounce 0.35s;
+  }
+
+  @keyframes bounce {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.12); }
+    100% { transform: scale(1); }
   }
 
   #status {
@@ -78,7 +95,6 @@
     padding: 15px;
     border-radius: 15px;
     background: rgba(255,255,255,0.1);
-    transition: all 0.3s;
   }
 
   .success {
@@ -104,23 +120,14 @@
     background: #34d399;
   }
 
-  .bounce {
-    animation: bounce 0.4s;
-  }
-
-  @keyframes bounce {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.15); }
-    100% { transform: scale(1); }
-  }
-
 </style>
 </head>
 
 <body>
 
 <h1>🏰 Hrad písmen</h1>
-<p>Presuň písmená do správneho poradia a otvor hrad 🧠</p>
+
+<div id="hint"></div>
 
 <div id="dropZone"></div>
 <div id="letters"></div>
@@ -134,7 +141,15 @@
 
 const API = "https://script.google.com/macros/s/AKfycbx0t_2q7ohFvF4ZvTDEGEklEP6kNf5tFkAL89rb9ug2A5CV_a7XVMoOTyKeGjBNqjTY/exec";
 
-const words = ["DOM", "HRAD", "KNIHA", "AUTO", "STOL", "PES", "LUK"];
+const wordData = [
+  { word: "DOM", hint: "miesto, kde bývame" },
+  { word: "HRAD", hint: "veľká historická stavba" },
+  { word: "KNIHA", hint: "čítaš v nej príbehy" },
+  { word: "AUTO", hint: "vozíme sa na ňom" },
+  { word: "STOL", hint: "na ňom jeme alebo pracujeme" },
+  { word: "PES", hint: "najlepší priateľ človeka" },
+  { word: "LUK", hint: "strieľa šípy" }
+];
 
 let currentWord = "";
 let placed = [];
@@ -142,14 +157,18 @@ let placed = [];
 const lettersDiv = document.getElementById("letters");
 const dropZone = document.getElementById("dropZone");
 const statusEl = document.getElementById("status");
+const hintEl = document.getElementById("hint");
 
 function shuffle(arr){
   return arr.sort(()=>Math.random()-0.5);
 }
 
 function startGame(){
-  currentWord = words[Math.floor(Math.random()*words.length)];
+  const selected = wordData[Math.floor(Math.random()*wordData.length)];
+  currentWord = selected.word;
   placed = Array(currentWord.length).fill(null);
+
+  hintEl.textContent = "💡 Nápoveda: " + selected.hint;
 
   renderDropZone();
   renderLetters();
@@ -163,13 +182,12 @@ function renderDropZone(){
   for(let i=0;i<currentWord.length;i++){
     const slot = document.createElement("div");
     slot.className = "drop-slot";
-    slot.dataset.index = i;
 
     slot.ondragover = e => e.preventDefault();
 
     slot.ondrop = e => {
       const letter = e.dataTransfer.getData("text");
-      placeLetter(i, letter);
+      placeLetter(i, letter, slot);
     };
 
     dropZone.appendChild(slot);
@@ -197,17 +215,18 @@ function renderLetters(){
       div.classList.remove("dragging");
     };
 
-    // touch support
-    div.ontouchstart = () => div.classList.add("dragging");
-    div.ontouchend = () => div.classList.remove("dragging");
-
     lettersDiv.appendChild(div);
   });
 }
 
-function placeLetter(index, letter){
+function placeLetter(index, letter, slot){
   placed[index] = letter;
   updateSlots();
+
+  // bounce efekt priamo na drop slot
+  slot.classList.add("bounce");
+  setTimeout(()=>slot.classList.remove("bounce"), 350);
+
   checkWord();
 }
 
@@ -226,7 +245,6 @@ function checkWord(){
 
     if(formed === currentWord){
       setStatus("✅ Správne! Brána sa otvára 🏰✨", "success");
-      animateSuccess();
 
       setTimeout(() => {
         sendProgress(1);
@@ -235,7 +253,6 @@ function checkWord(){
 
     } else {
       setStatus("❌ Nesprávne, skús znova!", "error");
-      animateError();
     }
   }
 }
@@ -248,19 +265,9 @@ function setStatus(text, type){
   if(type === "error") statusEl.classList.add("error");
 }
 
-function animateSuccess(){
-  document.body.classList.add("bounce");
-  setTimeout(()=>document.body.classList.remove("bounce"), 400);
-}
-
-function animateError(){
-  statusEl.classList.add("bounce");
-  setTimeout(()=>statusEl.classList.remove("bounce"), 400);
-}
-
 /* GOOGLE SHEET */
 function sendProgress(score){
-  const stationId = 2; // ✅ UPRAVENÉ NA STANOVISKO 2
+  const stationId = 2;
 
   let visited = JSON.parse(localStorage.getItem("visitedStations") || "[]");
   if(!visited.includes(stationId)) visited.push(stationId);
