@@ -1,1 +1,318 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🐻 Medvedí brloh - Stanovisko 7</title>
 
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(45deg, #16a34a, #15803d, #166534);
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
+    color: white;
+    text-align: center;
+    padding: 40px;
+    margin: 0;
+  }
+
+  @keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  h1 {
+    color: #fbbf24;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    font-size: 2.8em;
+  }
+
+  p {
+    font-size: 1.3em;
+    margin: 20px 0;
+  }
+
+  #word {
+    font-size: 3em;
+    font-weight: bold;
+    margin: 30px 0;
+  }
+
+  .options {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .option {
+    width: 180px;
+    padding: 20px;
+    border-radius: 20px;
+    font-size: 1.5em;
+    cursor: pointer;
+    background: rgba(255,255,255,0.1);
+    border: 3px solid rgba(255,255,255,0.4);
+    transition: 0.3s;
+  }
+
+  .option:hover {
+    transform: scale(1.05);
+    background: rgba(255,255,255,0.2);
+  }
+
+  .correct {
+    background: rgba(16,185,129,0.5) !important;
+    border-color: #10b981 !important;
+  }
+
+  .wrong {
+    background: rgba(239,68,68,0.5) !important;
+    border-color: #ef4444 !important;
+  }
+
+  #status {
+    margin-top: 25px;
+    font-size: 1.2em;
+    min-height: 80px;
+    background: rgba(255,255,255,0.1);
+    padding: 20px;
+    border-radius: 15px;
+  }
+
+  button {
+    font-size: 22px;
+    padding: 14px 30px;
+    margin: 12px;
+    background: #10b981;
+    border: none;
+    border-radius: 20px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  button:hover {
+    background: #34d399;
+    transform: scale(1.08);
+  }
+
+  /* NAME OVERLAY */
+  #nameOverlay {
+    position: fixed;
+    inset:0;
+    background: rgba(0,0,0,0.85);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+
+  #nameOverlay input {
+    font-size: 1.2em;
+    padding: 10px 15px;
+    border-radius: 10px;
+    border: none;
+    margin-top: 15px;
+    text-align: center;
+  }
+
+  #nameOverlay button {
+    margin-top: 15px;
+  }
+
+  /* RETURN OVERLAY */
+  .overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.9);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:2000;
+  }
+
+  .overlay-box{
+    background:#064e3b;
+    padding:30px;
+    border-radius:20px;
+    text-align:center;
+  }
+</style>
+</head>
+
+<body>
+
+<!-- NAME OVERLAY -->
+<div id="nameOverlay">
+  <div>Prosím, zadaj svoje meno:</div>
+  <input type="text" id="playerNameInput" placeholder="Tvoje meno">
+  <button onclick="submitName()">Potvrdiť</button>
+</div>
+
+<!-- RETURN OVERLAY -->
+<div id="returnOverlay" class="overlay" style="display:none;">
+  <div class="overlay-box">
+    <h2>🏠 Vrátiť sa na mapu?</h2>
+    <p>Chceš ukončiť Medvedí brloh?</p>
+    <button onclick="confirmReturn()">Áno</button>
+    <button onclick="closeReturnOverlay()" style="background:#ef4444;">Zostať</button>
+  </div>
+</div>
+
+<h1>🐻 Medvedí brloh</h1>
+<p>Medveď sa učí anglicky a potrebuje tvoju pomoc 🐻🍯 Pomôž mu správne preložiť slová!</p>
+
+
+<div id="word">...</div>
+<div class="options" id="options"></div>
+
+<div id="status"></div>
+
+<button onclick="returnToMap()">🏠 Späť na mapu</button>
+
+<script>
+"use strict";
+
+const API = "https://script.google.com/macros/s/AKfycbx0t_2q7ohFvF4ZvTDEGEklEP6kNf5tFkAL89rb9ug2A5CV_a7XVMoOTyKeGjBNqjTY/exec";
+
+const questions = [
+  {word:"dog", options:["pes","mačka","auto"], correct:"pes"},
+  {word:"cat", options:["pes","mačka","strom"], correct:"mačka"},
+  {word:"apple", options:["jablko","banán","hruška"], correct:"jablko"},
+  {word:"school", options:["škola","dom","ulica"], correct:"škola"},
+  {word:"book", options:["kniha","pero","stôl"], correct:"kniha"},
+  {word:"car", options:["auto","vlak","loď"], correct:"auto"},
+  {word:"tree", options:["strom","kvet","tráva"], correct:"strom"}
+];
+
+let current = 0;
+let score = 0;
+
+const wordEl = document.getElementById("word");
+const optionsEl = document.getElementById("options");
+const statusEl = document.getElementById("status");
+const overlay = document.getElementById("nameOverlay");
+const input = document.getElementById("playerNameInput");
+
+function shuffle(arr){
+  return arr.sort(()=>Math.random()-0.5);
+}
+
+function showQuestion(){
+  if(current >= questions.length){
+    statusEl.innerHTML = `🎉 Hotovo! Medvedí brloh zvládnutý 🐻<br>Skóre: ${score}/${questions.length}`;
+    finishStation(score);
+    optionsEl.innerHTML = "";
+    wordEl.innerHTML = "";
+    return;
+  }
+
+  const q = questions[current];
+  wordEl.textContent = q.word;
+
+  optionsEl.innerHTML = "";
+
+  shuffle(q.options).forEach(opt=>{
+    const div = document.createElement("div");
+    div.className = "option";
+    div.textContent = opt;
+
+    div.onclick = () => checkAnswer(opt, div, q.correct);
+
+    optionsEl.appendChild(div);
+  });
+
+  statusEl.innerHTML = "🧠 Vyber správny preklad!";
+}
+
+function checkAnswer(selected, el, correct){
+  document.querySelectorAll(".option").forEach(o=>o.style.pointerEvents="none");
+
+  if(selected === correct){
+    el.classList.add("correct");
+    score++;
+    statusEl.innerHTML = "✅ Správne!";
+  } else {
+    el.classList.add("wrong");
+    document.querySelectorAll(".option").forEach(o=>{
+      if(o.textContent === correct) o.classList.add("correct");
+    });
+    statusEl.innerHTML = "❌ Nesprávne!";
+  }
+
+  setTimeout(()=>{
+    current++;
+    showQuestion();
+  },1200);
+}
+
+/* NAME */
+function submitName(){
+  const name = input.value.trim();
+  if(!name) return alert("Zadaj meno!");
+  const playerId = crypto.randomUUID();
+  localStorage.setItem("playerName", name);
+  localStorage.setItem("playerId", playerId);
+  startGame();
+}
+
+function startGame(){
+  overlay.style.display = "none";
+  showQuestion();
+}
+
+/* RETURN */
+function returnToMap(){
+  document.getElementById("returnOverlay").style.display = "flex";
+}
+
+function closeReturnOverlay(){
+  document.getElementById("returnOverlay").style.display = "none";
+}
+
+function confirmReturn(){
+  finishStation(score);
+  window.location.href = "index.html";
+}
+
+/* GOOGLE SHEET */
+function finishStation(finalScore){
+  const stationId = 7;
+  let visited = JSON.parse(localStorage.getItem("visitedStations") || "[]");
+  if(!visited.includes(stationId)) visited.push(stationId);
+  localStorage.setItem("visitedStations", JSON.stringify(visited));
+
+  const playerName = localStorage.getItem("playerName");
+  const playerId = localStorage.getItem("playerId");
+
+  if(!playerName || !playerId) return;
+
+  const payload = {
+    name: playerName,
+    playerId,
+    station: stationId,
+    score: finalScore
+  };
+
+  const url = API + "?" + new URLSearchParams(payload).toString();
+
+  statusEl.innerHTML += "<br>📤 Odosielam dáta...";
+
+  fetch(url, {method:"GET", mode:"no-cors"})
+    .then(()=>console.log("✅ Odoslané"))
+    .catch(err=>console.error(err));
+}
+
+/* AUTO START */
+if(localStorage.getItem("playerName")){
+  overlay.style.display = "none";
+  startGame();
+}
+</script>
+
+</body>
+</html>
