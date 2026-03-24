@@ -30,7 +30,7 @@
     border-radius: 25px; 
     transition: all 0.3s; 
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    font-size: 4em; 
+    font-size: 3em; font-weight: bold;
     border: 5px solid rgba(124,45,18,0.4);
     background: rgba(255,255,255,0.9);
     user-select: none;
@@ -51,62 +51,20 @@
   button:hover { background: #9a3412; transform: scale(1.08); }
   button:disabled { background: #666; cursor: not-allowed; transform: none; }
 
-  @media (max-width: 500px) { .options { gap: 20px; } .option { width: 140px; height: 140px; font-size: 3.5em; } }
+  @media (max-width: 500px) { .options { gap: 20px; } .option { width: 140px; height: 140px; font-size: 2.5em; } }
 
-  /* NAME OVERLAY */
+  /* NAME & RETURN OVERLAY - rovnaké ako predtým */
   #nameOverlay {
-    position: fixed;
-    inset:0;
-    background: rgba(0,0,0,0.85);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    color: white;
-    font-size: 1.3em;
+    position: fixed; inset:0; background: rgba(0,0,0,0.85);
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    z-index: 1000; color: white; font-size: 1.3em;
   }
-  #nameOverlay input {
-    font-size: 1.2em;
-    padding: 10px 15px;
-    border-radius: 10px;
-    border: none;
-    margin-top: 15px;
-    text-align: center;
-  }
-  #nameOverlay button {
-    margin-top: 15px;
-    font-size: 1.2em;
-    padding: 10px 20px;
-    border-radius: 10px;
-  }
-
-  /* RETURN OVERLAY */
-  .overlay{
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,0.9);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    z-index:2000;
-  }
-  .overlay-box{
-    background:#064e3b;
-    padding:30px;
-    border-radius:20px;
-    text-align:center;
-    box-shadow:0 10px 40px rgba(0,0,0,0.6);
-  }
-  .overlay-box button{
-    background:#10b981;
-    border:none;
-    padding:10px 20px;
-    border-radius:10px;
-    font-weight:bold;
-    cursor:pointer;
-    margin: 0 5px;
-  }
+  #nameOverlay input { font-size: 1.2em; padding: 10px 15px; border-radius: 10px; border: none; margin-top: 15px; text-align: center; }
+  #nameOverlay button { margin-top: 15px; font-size: 1.2em; padding: 10px 20px; border-radius: 10px; }
+  
+  .overlay{ position:fixed; inset:0; background:rgba(0,0,0,0.9); display:flex; align-items:center; justify-content:center; z-index:2000; }
+  .overlay-box{ background:#064e3b; padding:30px; border-radius:20px; text-align:center; box-shadow:0 10px 40px rgba(0,0,0,0.6); }
+  .overlay-box button{ background:#10b981; border:none; padding:10px 20px; border-radius:10px; font-weight:bold; cursor:pointer; margin: 0 5px; }
 </style>
 </head>
 <body>
@@ -145,18 +103,18 @@ const overlay = document.getElementById('nameOverlay');
 const input = document.getElementById('playerNameInput');
 
 const tasks = [
-  {question: "🐺 + 🐺 + 🐷 + 🐷 + 🐷 = ?", options: ["4️⃣", "5️⃣", "6️⃣"], correct: 1},
-  {question: "👑 × 7️⃣ trpaslíkov = ?", options: ["7️⃣", "1️⃣4️⃣", "2️⃣1️⃣"], correct: 0},
-  {question: "🐸 - 🐸 + 🦢 = ?", options: ["1️⃣", "0️⃣", "2️⃣"], correct: 1},
-  {question: "🏰 ÷ 🧙‍♀️ = 3️⃣ (koľko veží má ježibaba?)", options: ["3️⃣", "6️⃣", "9️⃣"], correct: 0},
-  {question: "🐰 × 🐰 + 🐺 = ?", options: ["3️⃣", "5️⃣", "4️⃣"], correct: 0},
-  {question: "7️⃣ trpaslíkov + 3️⃣ prasiatka = ?", options: ["1️⃣0️⃣", "9️⃣", "1️⃣2️⃣"], correct: 0},
-  {question: "🍎 × 3️⃣ (snežienky) + 1️⃣ = ?", options: ["1️⃣0️⃣", "7️⃣", "4️⃣"], correct: 0},
-  {question: "🐺 ÷ 🐷 = 0️⃣ (vlkov zostane?)", options: ["0️⃣", "1️⃣", "2️⃣"], correct: 0},
-  {question: "🧚‍♀️ + 🧚‍♂️ × 2️⃣ + 🧙‍♀️ = ?", options: ["4️⃣", "5️⃣", "3️⃣"], correct: 1},
-  {question: "🎻 (Pičusko) + 🎻 + 🪕 = ?", options: ["2️⃣", "3️⃣", "1️⃣"], correct: 1},
-  {question: "🐸 × 🐸 × 🐸 = ?", options: ["9️⃣", "3️⃣", "6️⃣"], correct: 0},
-  {question: "👸 - 1️⃣ + 7️⃣ trpaslíkov = ?", options: ["6️⃣", "7️⃣", "8️⃣"], correct: 1}
+  {question: "🐺🐺 + 🐷🐷🐷 = ?", options: ["5", "4", "6"], correct: 0},
+  {question: "7️⃣ trpaslíkov + 3️⃣ prasiatka = ?", options: ["10", "9", "12"], correct: 0},
+  {question: "🐰🐰🐰 - 🐺 = ?", options: ["2", "3", "1"], correct: 0},
+  {question: "🧙‍♀️ + 7️⃣ trpaslíkov = ?", options: ["7", "8", "6"], correct: 1},
+  {question: "🐸🐸 + 🦢🦢 = ?", options: ["4", "3", "2"], correct: 0},
+  {question: "👸 má 1 korunu", options: ["1", "0", "2"], correct: 0},
+  {question: "🎻 Pičusko + 🎻 + 🪕 = ?", options: ["2", "3", "1"], correct: 1},
+  {question: "🐺 × 🐷 = 0 (vlk zjedol prasiatko)", options: ["0", "1", "2"], correct: 0},
+  {question: "🧚‍♀️🧚‍♀️ + 🧚‍♂️ = ?", options: ["3", "2", "4"], correct: 0},
+  {question: "7️⃣ - 7️⃣ + 1️⃣ = ?", options: ["1", "0", "7"], correct: 0},
+  {question: "🏠🏠 ÷ 🐷 = 2 (domčeky prasiatka)", options: ["2", "4", "1"], correct: 0},
+  {question: "🍎🍎🍎 + 🧸 = ?", options: ["4", "3", "5"], correct: 0}
 ];
 
 let currentTask = 0, score = 0;
@@ -228,19 +186,9 @@ function checkAnswer(selected){
   }
 }
 
-/* EXIT MODAL LOGIC */
-function returnToMap(){
-  document.getElementById("returnOverlay").style.display = "flex";
-}
-
-function closeReturnOverlay(){
-  document.getElementById("returnOverlay").style.display = "none";
-}
-
-function confirmReturn(){
-  finishStation(score);
-  window.location.href = "index.html";
-}
+function returnToMap(){ document.getElementById("returnOverlay").style.display = "flex"; }
+function closeReturnOverlay(){ document.getElementById("returnOverlay").style.display = "none"; }
+function confirmReturn(){ finishStation(score); window.location.href = "index.html"; }
 
 function finishStation(finalScore){
   const stationId = 2;
@@ -252,16 +200,12 @@ function finishStation(finalScore){
   const playerName = localStorage.getItem("playerName");
   const playerId = localStorage.getItem("playerId");
 
-  if(!playerName || !playerId){
-    console.error("Meno alebo ID hráča chýba!");
-    return;
-  }
+  if(!playerName || !playerId) return console.error("Meno alebo ID hráča chýba!");
 
   const payload = {name: playerName, playerId, station: stationId, score: finalScore || score};
   const url = API + "?" + new URLSearchParams(payload).toString();
 
   statusEl.innerHTML += "<br>📤 Odosielam dáta...";
-
   fetch(url,{method:"GET",mode:"no-cors"})
     .then(()=>console.log("✅ Odoslané - Stanovisko 2"))
     .catch(err=>console.error(err));
@@ -272,6 +216,5 @@ if(localStorage.getItem("playerName")){
   startGame();
 }
 </script>
-
 </body>
 </html>
