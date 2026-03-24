@@ -136,9 +136,7 @@ function showStatus(msg, className = "") {
 
 function finishStation() {
   const stationId = 6;
-  const statusEl = document.getElementById("status");
   const btn = document.getElementById("finishBtn");
-  if (!statusEl || !btn) return;
 
   let visited = JSON.parse(localStorage.getItem("visitedStations") || "[]");
   if (!Array.isArray(visited)) visited = [];
@@ -164,7 +162,7 @@ function finishStation() {
     name: playerName,
     playerId: playerId,
     station: stationId,
-    score: visited.length
+    score: 1   // 👈 vždy 1
   };
 
   const url = API + "?" + new URLSearchParams(payload).toString();
@@ -173,30 +171,27 @@ function finishStation() {
   btn.disabled = true;
   btn.textContent = "Odosiela sa...";
 
+  // odošle request (bez čakania)
   fetch(url, { method: "GET", mode: "no-cors" })
-    .then(() => {
-      showStatus(
-        `✅ LESNÁ TELOCVIČŇA DOKONČENÁ!<br><strong>${playerName}</strong><br>Stanovisko ${stationId} • Navštívené: ${visited.length}`,
-        "success"
-      );
+    .catch(err => console.error(err));
 
-      localStorage.setItem(`station_${stationId}`, "completed");
+  // UI ide ďalej nezávisle
+  setTimeout(() => {
+    showStatus(
+      `✅ LESNÁ TELOCVIČŇA DOKONČENÁ!<br><strong>${playerName}</strong><br>Stanovisko ${stationId}`,
+      "success"
+    );
 
-      setTimeout(() => {
-        showReturnOverlay();
-        btn.disabled = false;
-        btn.textContent = "✅ Dokončil som prekážkovú dráhu";
-      }, 2000);
-    })
-    .catch(err => {
-      console.error("Chyba:", err);
-      showStatus(`❌ Chyba pri odosielaní<br>${err.message || "neznáma chyba"}`, "error");
-      btn.disabled = false;
-      btn.textContent = "✅ Dokončil som prekážkovú dráhu";
-    });
+    localStorage.setItem(`station_${stationId}`, "completed");
+
+    showReturnOverlay();
+
+    btn.disabled = false;
+    btn.textContent = "✅ Dokončil som prekážkovú dráhu";
+  }, 1200);
 }
 
-/* OVERLAY FUNCTIONS */
+/* OVERLAY */
 function showReturnOverlay(){
   document.getElementById("returnOverlay").style.display = "flex";
 }
