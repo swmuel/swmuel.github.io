@@ -6,120 +6,95 @@
 <title>🏰 Hrad písmen - Stanovisko 2</title>
 
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    background: linear-gradient(135deg, #1e3a8a, #6d28d9, #0f172a);
-    color: white;
-    text-align: center;
-    padding: 30px;
-    margin: 0;
-  }
+body {
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #1e3a8a, #6d28d9, #0f172a);
+  color: white;
+  text-align: center;
+  padding: 30px;
+  margin: 0;
+}
 
-  h1 {
-    font-size: 2.6em;
-    margin-bottom: 10px;
-  }
+h1 { font-size: 2.6em; }
 
-  #hint {
-    font-size: 1.2em;
-    margin-bottom: 15px;
-    opacity: 0.9;
-  }
+#hint {
+  font-size: 1.2em;
+  margin-bottom: 15px;
+  opacity: 0.9;
+}
 
-  #letters, #dropZone {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin: 25px 0;
-  }
+#letters, #dropZone {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 25px 0;
+}
 
-  .letter {
-    width: 65px;
-    height: 65px;
-    background: #fbbf24;
-    color: black;
-    font-size: 2em;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 12px;
-    cursor: grab;
-    user-select: none;
-    touch-action: none;
-    transition: transform 0.2s, box-shadow 0.2s;
-  }
+.letter {
+  width: 65px;
+  height: 65px;
+  background: #fbbf24;
+  color: black;
+  font-size: 2em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  cursor: grab;
+  user-select: none;
+  transition: transform 0.2s;
+}
 
-  .letter:hover {
-    transform: scale(1.08);
-    box-shadow: 0 0 12px rgba(255,255,255,0.4);
-  }
+.letter.dragging {
+  transform: scale(1.15);
+  opacity: 0.8;
+}
 
-  .letter.dragging {
-    transform: scale(1.15);
-    opacity: 0.85;
-  }
+.drop-slot {
+  width: 65px;
+  height: 65px;
+  border: 2px dashed rgba(255,255,255,0.5);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2em;
+  transition: transform 0.2s;
+}
 
-  .drop-slot {
-    width: 65px;
-    height: 65px;
-    border: 2px dashed rgba(255,255,255,0.5);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2em;
-    transition: background 0.2s, transform 0.2s;
-  }
+.drop-slot.filled {
+  background: rgba(255,255,255,0.1);
+}
 
-  .drop-slot.filled {
-    background: rgba(255,255,255,0.1);
-    transform: scale(1.05);
-  }
+/* FINAL SCREEN */
+#finalScreen {
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.9);
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+}
 
-  /* jemný bounce pri dropnutí */
-  .bounce {
-    animation: bounce 0.35s;
-  }
+.final-box {
+  background:#064e3b;
+  padding:40px;
+  border-radius:20px;
+  text-align:center;
+}
 
-  @keyframes bounce {
-    0% { transform: scale(1); }
-    40% { transform: scale(1.12); }
-    100% { transform: scale(1); }
-  }
-
-  #status {
-    margin-top: 20px;
-    font-size: 1.3em;
-    min-height: 50px;
-    padding: 15px;
-    border-radius: 15px;
-    background: rgba(255,255,255,0.1);
-  }
-
-  .success {
-    background: rgba(16,185,129,0.3);
-  }
-
-  .error {
-    background: rgba(239,68,68,0.3);
-  }
-
-  button {
-    font-size: 18px;
-    padding: 10px 20px;
-    margin-top: 20px;
-    border-radius: 12px;
-    border: none;
-    background: #10b981;
-    color: white;
-    cursor: pointer;
-  }
-
-  button:hover {
-    background: #34d399;
-  }
-
+button {
+  margin-top:15px;
+  padding:10px 20px;
+  border:none;
+  border-radius:10px;
+  background:#10b981;
+  color:white;
+  font-size:16px;
+  cursor:pointer;
+}
 </style>
 </head>
 
@@ -132,13 +107,15 @@
 <div id="dropZone"></div>
 <div id="letters"></div>
 
-<div id="status">Začni skladať slovo 👇</div>
-
-<button onclick="returnToMap()">🏠 Späť na mapu</button>
+<div id="finalScreen">
+  <div class="final-box">
+    <h2>🎉 Brány hradu sú vďaka tebe otvorené!</h2>
+    <p id="finalText"></p>
+    <button onclick="returnToMap()">🏠 Späť na mapu</button>
+  </div>
+</div>
 
 <script>
-"use strict";
-
 const API = "https://script.google.com/macros/s/AKfycbx0t_2q7ohFvF4ZvTDEGEklEP6kNf5tFkAL89rb9ug2A5CV_a7XVMoOTyKeGjBNqjTY/exec";
 
 const wordData = [
@@ -151,29 +128,35 @@ const wordData = [
   { word: "LUK", hint: "strieľa šípy" }
 ];
 
+let index = 0;
 let currentWord = "";
 let placed = [];
+let score = 0;
 
 const lettersDiv = document.getElementById("letters");
 const dropZone = document.getElementById("dropZone");
-const statusEl = document.getElementById("status");
 const hintEl = document.getElementById("hint");
+const finalScreen = document.getElementById("finalScreen");
+const finalText = document.getElementById("finalText");
 
 function shuffle(arr){
   return arr.sort(()=>Math.random()-0.5);
 }
 
-function startGame(){
-  const selected = wordData[Math.floor(Math.random()*wordData.length)];
-  currentWord = selected.word;
+function loadWord(){
+  if(index >= wordData.length){
+    finishGame();
+    return;
+  }
+
+  const data = wordData[index];
+  currentWord = data.word;
   placed = Array(currentWord.length).fill(null);
 
-  hintEl.textContent = "💡 Nápoveda: " + selected.hint;
+  hintEl.textContent = "💡 Nápoveda: " + data.hint;
 
   renderDropZone();
   renderLetters();
-
-  setStatus("🏰 Skladaj slovo!");
 }
 
 function renderDropZone(){
@@ -211,9 +194,7 @@ function renderLetters(){
       div.classList.add("dragging");
     };
 
-    div.ondragend = () => {
-      div.classList.remove("dragging");
-    };
+    div.ondragend = () => div.classList.remove("dragging");
 
     lettersDiv.appendChild(div);
   });
@@ -223,11 +204,9 @@ function placeLetter(index, letter, slot){
   placed[index] = letter;
   updateSlots();
 
-  // bounce efekt priamo na drop slot
-  slot.classList.add("bounce");
-  setTimeout(()=>slot.classList.remove("bounce"), 350);
-
-  checkWord();
+  if(placed.every(l => l !== null)){
+    checkWord();
+  }
 }
 
 function updateSlots(){
@@ -240,63 +219,35 @@ function updateSlots(){
 }
 
 function checkWord(){
-  if(placed.every(l => l !== null)){
-    const formed = placed.join("");
+  const formed = placed.join("");
 
-    if(formed === currentWord){
-      setStatus("✅ Správne! Brána sa otvára 🏰✨", "success");
-
-      setTimeout(() => {
-        sendProgress(1);
-        startGame();
-      }, 1200);
-
-    } else {
-      setStatus("❌ Nesprávne, skús znova!", "error");
-    }
+  if(formed === currentWord){
+    score++;
+    index++;
+    setTimeout(loadWord, 800);
+  } else {
+    alert("❌ Nesprávne, skús znova!");
   }
 }
 
-function setStatus(text, type){
-  statusEl.textContent = text;
-  statusEl.className = "";
-
-  if(type === "success") statusEl.classList.add("success");
-  if(type === "error") statusEl.classList.add("error");
-}
-
-/* GOOGLE SHEET */
-function sendProgress(score){
-  const stationId = 2;
-
-  let visited = JSON.parse(localStorage.getItem("visitedStations") || "[]");
-  if(!visited.includes(stationId)) visited.push(stationId);
-  localStorage.setItem("visitedStations", JSON.stringify(visited));
-
+function finishGame(){
+  const name = localStorage.getItem("playerName") || "unknown";
   const playerId = localStorage.getItem("playerId");
-  if(!playerId) return;
 
-  const payload = {
-    name: "unknown",
-    playerId,
-    station: stationId,
-    score
-  };
+  finalText.textContent = "Hráč: " + name + " | Skóre: " + score + " / " + wordData.length;
 
-  const url = API + "?" + new URLSearchParams(payload).toString();
+  finalScreen.style.display = "flex";
 
-  fetch(url, {method:"GET", mode:"no-cors"})
-    .then(()=>console.log("sent"))
-    .catch(err=>console.error(err));
+  fetch(API + "?name=" + encodeURIComponent(name) + "&playerId=" + playerId + "&station=2&score=" + score)
+    .catch(()=>{});
 }
 
-/* RETURN */
 function returnToMap(){
   window.location.href = "index.html";
 }
 
 /* START */
-startGame();
+loadWord();
 
 </script>
 
