@@ -66,103 +66,149 @@
     .success { background: #10b981; }
     .error   { background: #ef4444; }
     .loading { background: #3b82f6; }
+
+    /* OVERLAY */
+    .overlay{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,0.9);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:2000;
+    }
+
+    .overlay-box{
+      background:#064e3b;
+      padding:30px;
+      border-radius:20px;
+      text-align:center;
+      box-shadow:0 10px 40px rgba(0,0,0,0.6);
+    }
+
+    .overlay-box button{
+      background:#10b981;
+      border:none;
+      padding:10px 20px;
+      border-radius:10px;
+      font-weight:bold;
+      cursor:pointer;
+    }
   </style>
 </head>
 <body>
-  <h1>🌲 Lesná telocvičňa</h1>
-  <p>Poď sa prebehnúť lesnou prekážkovou dráhou!</p>
 
-  <div class="instructions">
-    <h2>📋 Inštrukcie prekážkovej dráhy:</h2>
-    <p><strong>Vo vestibule si zahraj pohybovú hru!</p>
-    
-   
-    
-    
-    
+<!-- RETURN OVERLAY -->
+<div id="returnOverlay" class="overlay" style="display:none;">
+  <div class="overlay-box">
+    <h2>🏠 Vrátiť sa na mapu?</h2>
+    <p>Chceš ukončiť lesnú telocvičňu?</p>
+    <button onclick="confirmReturn()">Áno</button>
+    <button onclick="closeReturnOverlay()" style="background:#ef4444; margin-left:10px;">Zostať</button>
   </div>
+</div>
 
-  <br><br>
-  <button id="finishBtn" onclick="finishStation()">✅ Dokončil som prekážkovú dráhu</button>
+<h1>🌲 Lesná telocvičňa</h1>
+<p>Poď sa prebehnúť lesnou prekážkovou dráhou!</p>
 
-  <div id="status"></div>
+<div class="instructions">
+  <h2>📋 Inštrukcie prekážkovej dráhy:</h2>
+  <p><strong>Vo vestibule si zahraj pohybovú hru!</strong></p>
+</div>
 
-  <script>
-    "use strict";
+<br><br>
+<button id="finishBtn" onclick="finishStation()">✅ Dokončil som prekážkovú dráhu</button>
 
-    const API = "https://script.google.com/macros/s/AKfycbx0t_2q7ohFvF4ZvTDEGEklEP6kNf5tFkAL89rb9ug2A5CV_a7XVMoOTyKeGjBNqjTY/exec";
+<div id="status"></div>
 
-    function showStatus(msg, className = "") {
-      const el = document.getElementById("status");
-      if (el) {
-        el.innerHTML = msg;
-        el.className = className;
-      }
-    }
+<script>
+"use strict";
 
-    function finishStation() {
-      const stationId = 6;
-      const statusEl = document.getElementById("status");
-      const btn = document.getElementById("finishBtn");
-      if (!statusEl || !btn) return;
+const API = "https://script.google.com/macros/s/AKfycbx0t_2q7ohFvF4ZvTDEGEklEP6kNf5tFkAL89rb9ug2A5CV_a7XVMoOTyKeGjBNqjTY/exec";
 
-      let visited = JSON.parse(localStorage.getItem("visitedStations") || "[]");
-      if (!Array.isArray(visited)) visited = [];
+function showStatus(msg, className = "") {
+  const el = document.getElementById("status");
+  if (el) {
+    el.innerHTML = msg;
+    el.className = className;
+  }
+}
 
-      if (!visited.includes(stationId)) {
-        visited.push(stationId);
-        localStorage.setItem("visitedStations", JSON.stringify(visited));
-      }
+function finishStation() {
+  const stationId = 6;
+  const statusEl = document.getElementById("status");
+  const btn = document.getElementById("finishBtn");
+  if (!statusEl || !btn) return;
 
-      let playerName = localStorage.getItem("playerName");
-      if (!playerName) {
-        playerName = prompt("Zadaj svoje meno:", "Hráč") || "Hráč";
-        localStorage.setItem("playerName", playerName);
-      }
+  let visited = JSON.parse(localStorage.getItem("visitedStations") || "[]");
+  if (!Array.isArray(visited)) visited = [];
 
-      let playerId = localStorage.getItem("playerId");
-      if (!playerId) {
-        playerId = "hrac_" + Date.now();
-        localStorage.setItem("playerId", playerId);
-      }
+  if (!visited.includes(stationId)) {
+    visited.push(stationId);
+    localStorage.setItem("visitedStations", JSON.stringify(visited));
+  }
 
-      const payload = {
-        name: playerName,
-        playerId: playerId,
-        station: stationId,
-        score: visited.length
-      };
+  let playerName = localStorage.getItem("playerName");
+  if (!playerName) {
+    playerName = prompt("Zadaj svoje meno:", "Hráč") || "Hráč";
+    localStorage.setItem("playerName", playerName);
+  }
 
-      const url = API + "?" + new URLSearchParams(payload).toString();
+  let playerId = localStorage.getItem("playerId");
+  if (!playerId) {
+    playerId = "hrac_" + Date.now();
+    localStorage.setItem("playerId", playerId);
+  }
 
-      showStatus("🌲 Počítam lesné body...", "loading");
-      btn.disabled = true;
-      btn.textContent = "Odosiela sa...";
+  const payload = {
+    name: playerName,
+    playerId: playerId,
+    station: stationId,
+    score: visited.length
+  };
 
-      fetch(url, { method: "GET", mode: "no-cors" })
-        .then(() => {
-          showStatus(
-            `✅ LESNÁ TEL OCVIČNE DOKONČENÁ!<br><strong>${playerName}</strong><br>Stanovisko ${stationId} • Navštívené: ${visited.length}`,
-            "success"
-          );
+  const url = API + "?" + new URLSearchParams(payload).toString();
 
-          localStorage.setItem(`station_${stationId}`, "completed");
+  showStatus("🌲 Počítam lesné body...", "loading");
+  btn.disabled = true;
+  btn.textContent = "Odosiela sa...";
 
-          setTimeout(() => {
-            if (confirm("Vrátiť sa na mapu?")) {
-              window.location.href = "index.html";
-            }
-            btn.disabled = false;
-            btn.textContent = "✅ Dokončil som prekážkovú dráhu";
-          }, 2200);
-        })
-        .catch(err => {
-          console.error("Chyba:", err);
-          showStatus(`❌ Chyba pri odosielaní<br>${err.message || "neznáma chyba"}<br>Skús znova (F12 pre viac info)`, "error");
-          btn.disabled = false;
-          btn.textContent = "✅ Dokončil som prekážkovú dráhu";
-        });
-    }
-  </script>
+  fetch(url, { method: "GET", mode: "no-cors" })
+    .then(() => {
+      showStatus(
+        `✅ LESNÁ TELOCVIČŇA DOKONČENÁ!<br><strong>${playerName}</strong><br>Stanovisko ${stationId} • Navštívené: ${visited.length}`,
+        "success"
+      );
+
+      localStorage.setItem(`station_${stationId}`, "completed");
+
+      setTimeout(() => {
+        showReturnOverlay();
+        btn.disabled = false;
+        btn.textContent = "✅ Dokončil som prekážkovú dráhu";
+      }, 2000);
+    })
+    .catch(err => {
+      console.error("Chyba:", err);
+      showStatus(`❌ Chyba pri odosielaní<br>${err.message || "neznáma chyba"}`, "error");
+      btn.disabled = false;
+      btn.textContent = "✅ Dokončil som prekážkovú dráhu";
+    });
+}
+
+/* OVERLAY FUNCTIONS */
+function showReturnOverlay(){
+  document.getElementById("returnOverlay").style.display = "flex";
+}
+
+function closeReturnOverlay(){
+  document.getElementById("returnOverlay").style.display = "none";
+}
+
+function confirmReturn(){
+  window.location.href = "index.html";
+}
+</script>
+
 </body>
 </html>
