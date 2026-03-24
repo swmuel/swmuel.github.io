@@ -1,1 +1,289 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎵 Jazierko Melódie - Stanovisko 4</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(45deg, #3b82f6, #9333ea);
+    color: white;
+    text-align: center;
+    padding: 30px;
+    margin: 0;
+  }
+  h1 {
+    font-size: 2.8em;
+    color: #fbbf24;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+  }
+  p { font-size: 1.2em; margin: 15px 0; }
+  .tone-btn {
+    width: 70px;
+    height: 70px;
+    margin: 10px;
+    border-radius: 12px;
+    border: none;
+    font-size: 1.5em;
+    cursor: pointer;
+    transition: all 0.1s;
+    color: white;
+  }
+  .tone-btn:active {
+    transform: scale(0.9);
+    box-shadow: inset 0 0 8px #000;
+  }
+  .tone-btn.wrong {
+    box-shadow: 0 0 20px #ef4444;
+    background: #ef4444 !important;
+    transform: scale(0.95);
+  }
+  #status {
+    margin-top: 25px;
+    font-size: 1.2em;
+    min-height: 100px;
+    line-height: 1.5;
+    background: rgba(255,255,255,0.1);
+    padding: 15px;
+    border-radius: 12px;
+  }
+  button#playExample {
+    font-size: 20px;
+    padding: 12px 24px;
+    margin: 12px;
+    border-radius: 15px;
+    background: #10b981;
+    border: none;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  button#playExample:hover {
+    transform: scale(1.05);
+    background: #34d399;
+  }
+  button#returnBtn {
+    font-size: 20px;
+    padding: 12px 24px;
+    margin: 12px;
+    border-radius: 15px;
+    background: #f87171;
+    border: none;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  button#returnBtn:hover {
+    transform: scale(1.05);
+    background: #fca5a5;
+  }
 
+  /* OVERLAY */
+  .overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.9);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:2000;
+  }
+
+  .overlay-box{
+    background:#064e3b;
+    padding:30px;
+    border-radius:20px;
+    text-align:center;
+    box-shadow:0 10px 40px rgba(0,0,0,0.6);
+  }
+
+  .overlay-box button{
+    background:#10b981;
+    border:none;
+    padding:10px 20px;
+    border-radius:10px;
+    font-weight:bold;
+    cursor:pointer;
+  }
+</style>
+</head>
+<body>
+
+<!-- RETURN OVERLAY -->
+<div id="returnOverlay" class="overlay" style="display:none;">
+  <div class="overlay-box">
+    <h2>🏠 Vrátiť sa na mapu?</h2>
+    <p>Chceš ukončiť jazierko melódie?</p>
+    <button onclick="confirmReturn()">Áno</button>
+    <button onclick="closeReturnOverlay()" style="background:#ef4444; margin-left:10px;">Zostať</button>
+  </div>
+</div>
+
+<h1>🎵 Jazierko Melódie</h1>
+<p>Počúvaj melódiu a sleduj ktoré farby sa zvýraznia, potom ju napodobni kliknutím na farby.</p>
+
+<div>
+  <button class="tone-btn" data-color="red" style="background:red">🔴</button>
+  <button class="tone-btn" data-color="blue" style="background:blue">🔵</button>
+  <button class="tone-btn" data-color="green" style="background:green">🟢</button>
+  <button class="tone-btn" data-color="yellow" style="background:yellow;color:black">🟡</button>
+</div>
+
+<button id="playExample">▶️ Prehrať príklad</button>
+<div id="status"></div>
+<button id="returnBtn" onclick="returnToMap()">🏠 Späť na mapu</button>
+
+<script>
+"use strict";
+
+const statusEl = document.getElementById("status");
+const toneButtons = document.querySelectorAll(".tone-btn");
+const playExampleBtn = document.getElementById("playExample");
+
+// Frequencies
+const tones = { red: 261.63, blue: 293.66, green: 329.63, yellow: 349.23 };
+
+// Example melodies
+const exampleMelodies = [
+  ["red","blue","green","yellow","blue","red"],
+  ["green","yellow","blue","red","green"],
+  ["yellow","red","yellow","green","blue"],
+];
+
+let currentMelodyIndex = 0;
+let userSequence = [];
+let score = 0;
+let isPlaying = false;
+
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function playTone(freq){
+  const osc = audioCtx.createOscillator();
+  const gainNode = audioCtx.createGain();
+  osc.connect(gainNode);
+  gainNode.connect(audioCtx.destination);
+  osc.type = "sine";
+  osc.frequency.value = freq;
+  gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.5);
+}
+
+function highlightBtn(color){
+  const btn = document.querySelector(`.tone-btn[data-color="${color}"]`);
+  if(btn){
+    btn.style.transform = "scale(1.3)";
+    btn.style.boxShadow = "0 0 20px white";
+    btn.style.opacity = "0.8";
+    setTimeout(()=> {
+      btn.style.transform = "";
+      btn.style.boxShadow = "";
+      btn.style.opacity = "";
+    }, 500);
+  }
+}
+
+async function playMelody(seq){
+  isPlaying = true;
+  statusEl.innerHTML = "🎵 Počúvaj melódiu...";
+  for(let color of seq){
+    playTone(tones[color]);
+    highlightBtn(color);
+    await new Promise(r=>setTimeout(r, 600));
+  }
+  statusEl.innerHTML = "🎶 Teraz ju napodobni!";
+  userSequence = [];
+  isPlaying = false;
+}
+
+function handleUserClick(color){
+  if(isPlaying) return;
+  playTone(tones[color]);
+  userSequence.push(color);
+  const idx = userSequence.length - 1;
+  const currentMelody = exampleMelodies[currentMelodyIndex];
+
+  if(userSequence[idx] !== currentMelody[idx]){
+    const btn = document.querySelector(`.tone-btn[data-color="${color}"]`);
+    if(btn) btn.classList.add("wrong");
+    setTimeout(()=>{ if(btn) btn.classList.remove("wrong"); }, 500);
+    statusEl.innerHTML = "❌ Nesprávne! Skús znova.";
+    userSequence = [];
+    return;
+  }
+
+  if(userSequence.length === currentMelody.length){
+    score++;
+    statusEl.innerHTML = `✅ Správne! Body: ${score}`;
+    finishMelody();
+  } else {
+    statusEl.innerHTML = `👍 Správne! Pokračuj... (${userSequence.length}/${currentMelody.length})`;
+  }
+}
+
+function finishMelody(){
+  currentMelodyIndex++;
+  if(currentMelodyIndex < exampleMelodies.length){
+    setTimeout(() => {
+      statusEl.innerHTML = "🎵 Nasledujúca melódia!";
+      playMelody(exampleMelodies[currentMelodyIndex]);
+    }, 1000);
+  } else {
+    statusEl.innerHTML = `🎉 Všetky melódie dokončené! Celkové body: ${score}`;
+    finishStation(score);
+  }
+}
+
+toneButtons.forEach(btn => {
+  btn.addEventListener("click", () => handleUserClick(btn.dataset.color));
+});
+
+playExampleBtn.addEventListener("click", () => {
+  playMelody(exampleMelodies[currentMelodyIndex]);
+});
+
+// API
+const API = "https://script.google.com/macros/s/AKfycbx0t_2q7ohFvF4ZvTDEGEklEP6kNf5tFkAL89rb9ug2A5CV_a7XVMoOTyKeGjBNqjTY/exec";
+
+function finishStation(finalScore){
+  const stationId = 4;
+  let visited = JSON.parse(localStorage.getItem("visitedStations") || "[]");
+  if(!Array.isArray(visited)) visited = [];
+  if(!visited.includes(stationId)) visited.push(stationId);
+  localStorage.setItem("visitedStations", JSON.stringify(visited));
+
+  let playerName = localStorage.getItem("playerName") || prompt("Zadaj svoje meno:", "Hráč") || "Hráč";
+  localStorage.setItem("playerName", playerName);
+  let playerId = localStorage.getItem("playerId") || "hrac_" + Date.now();
+  localStorage.setItem("playerId", playerId);
+
+  const payload = {name: playerName, playerId, station: stationId, score: finalScore || 0};
+  const url = API + "?" + new URLSearchParams(payload).toString();
+
+  statusEl.innerHTML += "<br>📤 Odosielam dáta...";
+  fetch(url, {method:"GET", mode:"no-cors"})
+    .catch(err=>console.error(err));
+}
+
+/* OVERLAY LOGIC */
+function returnToMap() {
+  finishStation(score);
+  showReturnOverlay();
+}
+
+function showReturnOverlay(){
+  document.getElementById("returnOverlay").style.display = "flex";
+}
+
+function closeReturnOverlay(){
+  document.getElementById("returnOverlay").style.display = "none";
+}
+
+function confirmReturn(){
+  window.location.href = "index.html";
+}
+</script>
+
+</body>
+</html>
