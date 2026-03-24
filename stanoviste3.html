@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌸 Rozprávková lúka - Stanovisko 2</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(45deg, #10b981, #34d399, #6ee7b7, #dcfce7);
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
+    color: #064e3b;
+    text-align: center;
+    padding: 40px;
+    margin: 0;
+  }
+  @keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  h1 { color: #7c2d12; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); font-size: 2.8em; }
+  p { font-size: 1.3em; margin: 20px 0; }
+  .task { font-size: 2em; margin: 25px 0; font-weight: bold; background: rgba(255,255,255,0.8); padding: 20px; border-radius: 20px; }
+  .options { display: flex; justify-content: center; gap: 30px; margin: 30px 0; flex-wrap: wrap; }
+  .option { 
+    width: 160px; height: 160px; 
+    cursor: pointer; 
+    border-radius: 25px; 
+    transition: all 0.3s; 
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-size: 4em; 
+    border: 5px solid rgba(124,45,18,0.4);
+    background: rgba(255,255,255,0.9);
+    user-select: none;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+  }
+  .option:hover { transform: scale(1.1); border-color: #7c2d12; background: rgba(255,255,255,1); }
+  .option:active { transform: scale(0.98); }
+  .option.correct { border-color: #10b981 !important; background: rgba(16,185,129,0.4); animation: bounce 0.5s; }
+  .option.wrong { border-color: #ef4444 !important; background: rgba(239,68,68,0.4); animation: shake 0.5s; }
+  .option.disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+
+  @keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-20px); } 60% { transform: translateY(-10px); } }
+  @keyframes shake { 0%, 100% { transform: translateX(0); } 10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); } 20%, 40%, 60%, 80% { transform: translateX(5px); } }
+
+  #status { margin-top: 25px; font-size: 1.2em; min-height: 100px; line-height: 1.5; background: rgba(255,255,255,0.8); padding: 20px; border-radius: 15px; }
+
+  button { font-size: 22px; padding: 14px 30px; margin: 12px; background: #7c2d12; border: none; border-radius: 20px; color: white; cursor: pointer; transition: all 0.3s; }
+  button:hover { background: #9a3412; transform: scale(1.08); }
+  button:disabled { background: #666; cursor: not-allowed; transform: none; }
+
+  @media (max-width: 500px) { .options { gap: 20px; } .option { width: 140px; height: 140px; font-size: 3.5em; } }
+
+  /* NAME OVERLAY */
+  #nameOverlay {
+    position: fixed;
+    inset:0;
+    background: rgba(0,0,0,0.85);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    color: white;
+    font-size: 1.3em;
+  }
+  #nameOverlay input {
+    font-size: 1.2em;
+    padding: 10px 15px;
+    border-radius: 10px;
+    border: none;
+    margin-top: 15px;
+    text-align: center;
+  }
+  #nameOverlay button {
+    margin-top: 15px;
+    font-size: 1.2em;
+    padding: 10px 20px;
+    border-radius: 10px;
+  }
+
+  /* RETURN OVERLAY */
+  .overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.9);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:2000;
+  }
+  .overlay-box{
+    background:#064e3b;
+    padding:30px;
+    border-radius:20px;
+    text-align:center;
+    box-shadow:0 10px 40px rgba(0,0,0,0.6);
+  }
+  .overlay-box button{
+    background:#10b981;
+    border:none;
+    padding:10px 20px;
+    border-radius:10px;
+    font-weight:bold;
+    cursor:pointer;
+    margin: 0 5px;
+  }
+</style>
+</head>
+<body>
+
+<!-- NAME OVERLAY -->
+<div id="nameOverlay">
+  <div>Prosím, zadaj svoje meno:</div>
+  <input type="text" id="playerNameInput" placeholder="Tvoje meno">
+  <button onclick="submitName()">Potvrdiť</button>
+</div>
+
+<!-- RETURN OVERLAY -->
+<div id="returnOverlay" class="overlay" style="display:none;">
+  <div class="overlay-box">
+    <h2>🏠 Vrátiť sa na mapu?</h2>
+    <p>Chceš ukončiť Rozprávkovú lúku?</p>
+    <button onclick="confirmReturn()">Áno</button>
+    <button onclick="closeReturnOverlay()" style="background:#ef4444;">Zostať</button>
+  </div>
+</div>
+
+<h1>🌸 Rozprávková lúka</h1>
+<p>Vypočítaj koľko je rozprávkových postavičiek! 🌸🏰🐺</p>
+
+<div id="gameArea"></div>
+<div id="status"></div>
+<button onclick="returnToMap()">🏠 Späť na mapu</button>
+
+<script>
+"use strict";
+
+const API = "https://script.google.com/macros/s/AKfycbx0t_2q7ohFvF4ZvTDEGEklEP6kNf5tFkAL89rb9ug2A5CV_a7XVMoOTyKeGjBNqjTY/exec";
+const gameArea = document.getElementById('gameArea');
+const statusEl = document.getElementById('status');
+const overlay = document.getElementById('nameOverlay');
+const input = document.getElementById('playerNameInput');
+
+const tasks = [
+  {question: "🐺 + 🐺 + 🐷 + 🐷 + 🐷 = ?", options: ["4️⃣", "5️⃣", "6️⃣"], correct: 1},
+  {question: "👑 × 7️⃣ trpaslíkov = ?", options: ["7️⃣", "1️⃣4️⃣", "2️⃣1️⃣"], correct: 0},
+  {question: "🐸 - 🐸 + 🦢 = ?", options: ["1️⃣", "0️⃣", "2️⃣"], correct: 1},
+  {question: "🏰 ÷ 🧙‍♀️ = 3️⃣ (koľko veží má ježibaba?)", options: ["3️⃣", "6️⃣", "9️⃣"], correct: 0},
+  {question: "🐰 × 🐰 + 🐺 = ?", options: ["3️⃣", "5️⃣", "4️⃣"], correct: 0},
+  {question: "7️⃣ trpaslíkov + 3️⃣ prasiatka = ?", options: ["1️⃣0️⃣", "9️⃣", "1️⃣2️⃣"], correct: 0},
+  {question: "🍎 × 3️⃣ (snežienky) + 1️⃣ = ?", options: ["1️⃣0️⃣", "7️⃣", "4️⃣"], correct: 0},
+  {question: "🐺 ÷ 🐷 = 0️⃣ (vlkov zostane?)", options: ["0️⃣", "1️⃣", "2️⃣"], correct: 0},
+  {question: "🧚‍♀️ + 🧚‍♂️ × 2️⃣ + 🧙‍♀️ = ?", options: ["4️⃣", "5️⃣", "3️⃣"], correct: 1},
+  {question: "🎻 (Pičusko) + 🎻 + 🪕 = ?", options: ["2️⃣", "3️⃣", "1️⃣"], correct: 1},
+  {question: "🐸 × 🐸 × 🐸 = ?", options: ["9️⃣", "3️⃣", "6️⃣"], correct: 0},
+  {question: "👸 - 1️⃣ + 7️⃣ trpaslíkov = ?", options: ["6️⃣", "7️⃣", "8️⃣"], correct: 1}
+];
+
+let currentTask = 0, score = 0;
+
+function shuffleTasks() {
+  return tasks.sort(() => Math.random() - 0.5);
+}
+
+function startGame(){
+  overlay.style.display = 'none';
+  currentTask = 0;
+  score = 0;
+  const shuffledTasks = shuffleTasks();
+  showTask(shuffledTasks[currentTask]);
+  statusEl.innerHTML = "🌸 Počítaj rozprávkové postavičky a vyber správne číslo! 🏰";
+}
+
+function submitName(){
+  const name = input.value.trim();
+  if(!name) return alert("Zadaj platné meno!");
+  const playerId = crypto.randomUUID();
+  localStorage.setItem("playerName", name);
+  localStorage.setItem("playerId", playerId);
+  startGame();
+}
+
+function showTask(task) {
+  if(currentTask >= tasks.length){
+    statusEl.innerHTML = `🎉 Rozprávková lúka dokončená! 🌸<br>Správne odpovede: ${score}/${tasks.length}`;
+    gameArea.innerHTML = "";
+    finishStation(score);
+    return;
+  }
+  
+  gameArea.innerHTML = `
+    <div class="task">${task.question}</div>
+    <div class="options">
+      ${task.options.map((opt, i) => 
+        `<div class="option" onclick="checkAnswer(${i})">${opt}</div>`
+      ).join('')}
+    </div>
+  `;
+}
+
+function checkAnswer(selected){
+  const task = tasks[currentTask];
+  document.querySelectorAll('.option').forEach(el => el.classList.add('disabled'));
+  
+  const correctOption = document.querySelectorAll('.option')[task.correct];
+  const selectedOption = document.querySelectorAll('.option')[selected];
+  
+  if(selected === task.correct){
+    score++;
+    selectedOption.classList.add('correct');
+    statusEl.innerHTML = `✅ Výborne! (${score}/${tasks.length}) 🌸`;
+    setTimeout(() => {
+      currentTask++;
+      showTask(tasks[currentTask]);
+    }, 1500);
+  } else {
+    selectedOption.classList.add('wrong');
+    correctOption.classList.add('correct');
+    statusEl.innerHTML = "❌ Skús znova! 💡";
+    setTimeout(() => {
+      document.querySelectorAll('.option').forEach(el => {
+        el.classList.remove('correct', 'wrong', 'disabled');
+      });
+    }, 1500);
+  }
+}
+
+/* EXIT MODAL LOGIC */
+function returnToMap(){
+  document.getElementById("returnOverlay").style.display = "flex";
+}
+
+function closeReturnOverlay(){
+  document.getElementById("returnOverlay").style.display = "none";
+}
+
+function confirmReturn(){
+  finishStation(score);
+  window.location.href = "index.html";
+}
+
+function finishStation(finalScore){
+  const stationId = 2;
+  let visited = JSON.parse(localStorage.getItem("visitedStations") || "[]");
+  if(!Array.isArray(visited)) visited = [];
+  if(!visited.includes(stationId)) visited.push(stationId);
+  localStorage.setItem("visitedStations", JSON.stringify(visited));
+
+  const playerName = localStorage.getItem("playerName");
+  const playerId = localStorage.getItem("playerId");
+
+  if(!playerName || !playerId){
+    console.error("Meno alebo ID hráča chýba!");
+    return;
+  }
+
+  const payload = {name: playerName, playerId, station: stationId, score: finalScore || score};
+  const url = API + "?" + new URLSearchParams(payload).toString();
+
+  statusEl.innerHTML += "<br>📤 Odosielam dáta...";
+
+  fetch(url,{method:"GET",mode:"no-cors"})
+    .then(()=>console.log("✅ Odoslané - Stanovisko 2"))
+    .catch(err=>console.error(err));
+}
+
+if(localStorage.getItem("playerName")){
+  overlay.style.display='none';
+  startGame();
+}
+</script>
+
+</body>
+</html>
