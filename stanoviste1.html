@@ -29,16 +29,36 @@
     border-radius: 15px; 
     transition: all 0.4s; 
     display: flex; align-items: center; justify-content: center;
-    font-size: 2.5em; 
+    font-size: 3em; 
     border: 4px solid rgba(255,255,255,0.4);
-    background: rgba(255,255,255,0.1);
+    background: linear-gradient(145deg, rgba(30,58,138,0.8), rgba(59,130,246,0.6));
+    color: transparent; /* SKRYJE TEXT NA ZAČIATKU */
     user-select: none;
     position: relative;
     box-shadow: 0 4px 15px rgba(0,0,0,0.3);
   }
-  .card:hover { transform: scale(1.05) rotate(2deg); border-color: #fbbf24; background: rgba(251,191,36,0.2); }
-  .card.flipped { transform: rotateY(180deg); background: rgba(255,255,255,0.9) !important; color: #1e3a8a !important; border-color: #fbbf24 !important; }
-  .card.matched { background: rgba(251,191,36,0.6) !important; border-color: #fbbf24 !important; cursor: default; transform: scale(0.95); }
+  .card::before { /* ZADNÁ STRANA */
+    content: "🦉";
+    font-size: 2em;
+    position: absolute;
+    color: white;
+    opacity: 0.7;
+  }
+  .card:hover { transform: scale(1.05) rotate(2deg); border-color: #fbbf24; }
+  .card.flipped { 
+    background: rgba(255,255,255,0.95) !important; 
+    color: #1e3a8a !important; 
+    border-color: #fbbf24 !important; 
+    transform: rotateY(180deg);
+  }
+  .card.flipped::before { opacity: 0; } /* Skry zadnú stranu pri otočení */
+  .card.matched { 
+    background: rgba(251,191,36,0.6) !important; 
+    border-color: #fbbf24 !important; 
+    cursor: default; 
+    transform: scale(0.95) !important;
+  }
+  .card.matched::before { opacity: 0; }
   .card.disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
   #score { font-size: 1.5em; margin: 20px 0; font-weight: bold; color: #fbbf24; }
   #status { margin-top: 25px; font-size: 1.2em; min-height: 80px; line-height: 1.5; background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; }
@@ -49,7 +69,8 @@
 
   @media (max-width: 500px) { 
     #gameArea { grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 12px; }
-    .card { width: 80px; height: 80px; font-size: 2em; }
+    .card { width: 80px; height: 80px; }
+    .card::before { font-size: 1.6em; }
   }
 
   /* NAME OVERLAY */
@@ -159,14 +180,14 @@ function startGame(){
   flippedCards = [];
   const shuffledPairs = shuffle(pairs.slice());
   gameArea.innerHTML = shuffledPairs.map((emoji, i) => 
-    `<div class="card" onclick="flipCard(${i}, this)" data-emoji="${emoji}">${emoji}</div>`
+    `<div class="card" onclick="flipCard(${i}, this)" data-emoji="${emoji}">🦉</div>`
   ).join('');
   scoreEl.textContent = `Páry nájdené: ${matchesFound}/8`;
   statusEl.innerHTML = "🦉 Klikni na karty a nájdi rovnaké páry! (8 párov)";
 }
 
 function flipCard(index, card) {
-  if (!gameActive || card.classList.contains('flipped') || flippedCards.length >= 2) return;
+  if (!gameActive || card.classList.contains('flipped') || card.classList.contains('matched') || flippedCards.length >= 2) return;
   
   card.classList.add('flipped');
   card.textContent = card.dataset.emoji;
