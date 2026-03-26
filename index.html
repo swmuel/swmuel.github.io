@@ -54,7 +54,17 @@ body::before{
   border-radius:20px;
   text-align:center;
   width:90%;
-  max-width:300px;
+  max-width:320px;
+  box-shadow:0 10px 40px rgba(0,0,0,0.6);
+}
+
+.overlay-box input{
+  padding:10px;
+  font-size:16px;
+  border-radius:10px;
+  border:none;
+  margin:15px 0;
+  width:100%;
 }
 
 /* HEADER */
@@ -132,7 +142,7 @@ h1{ color:#fbbf24; font-size:24px; }
   transform:scale(0.9);
 }
 
-/* ✨ VISITED EFFECT */
+/* VISITED */
 @keyframes popIn{
   0%{ transform:scale(0.7); opacity:0; }
   100%{ transform:scale(1.05); opacity:1; }
@@ -152,7 +162,26 @@ h1{ color:#fbbf24; font-size:24px; }
   font-size:11px;
 }
 
-/* TABLET */
+/* EXIT BUTTONS */
+.overlay-box button{
+  padding:10px 18px;
+  border:none;
+  border-radius:12px;
+  font-weight:bold;
+  cursor:pointer;
+  margin:5px;
+}
+
+.overlay-box button:first-of-type{
+  background:#ef4444;
+  color:white;
+}
+
+.overlay-box button:last-of-type{
+  background:#fbbf24;
+}
+
+/* RESPONSIVE */
 @media (min-width: 600px){
   .station{
     width:85px;
@@ -162,7 +191,6 @@ h1{ color:#fbbf24; font-size:24px; }
   .label{ font-size:13px; }
 }
 
-/* DESKTOP */
 @media (min-width: 900px){
   h1{ font-size:28px; }
   .station{
@@ -188,6 +216,16 @@ h1{ color:#fbbf24; font-size:24px; }
   </div>
 </div>
 
+<!-- RESET OVERLAY -->
+<div id="resetOverlay" class="overlay" style="display:none;">
+  <div class="overlay-box">
+    <h2>⚠️ Resetovať hru?</h2>
+    <p>Stratíš progres.</p>
+    <button onclick="confirmReset()">Resetovať</button>
+    <button onclick="closeReset()">Zrušiť</button>
+  </div>
+</div>
+
 <header>
 <h1>🌲 Čarovný Les 🌲</h1>
 
@@ -197,7 +235,7 @@ h1{ color:#fbbf24; font-size:24px; }
 
 <div id="progressText" class="progress-text">0 / 8 objavené</div>
 
-<button class="reset-btn" onclick="resetGame()">🔄 RESET</button>
+<button class="reset-btn" onclick="openReset()">🔄 RESET</button>
 </header>
 
 <div class="board">
@@ -226,7 +264,9 @@ let visited = new Set(JSON.parse(localStorage.getItem("visitedStations") || "[]"
 /* NAME */
 function initPlayer(){
   const name = localStorage.getItem("playerName");
-  if(!name){
+  const id = localStorage.getItem("playerId");
+
+  if(!name || !id){
     document.getElementById("nameOverlay").style.display = "flex";
   }
 }
@@ -235,10 +275,13 @@ function submitName(){
   const name = document.getElementById("nameInput").value.trim();
   if(!name) return;
 
-  const playerId = crypto.randomUUID();
-  localStorage.setItem("playerName", name);
-  localStorage.setItem("playerId", playerId);
+  let playerId = localStorage.getItem("playerId");
+  if(!playerId){
+    playerId = crypto.randomUUID();
+    localStorage.setItem("playerId", playerId);
+  }
 
+  localStorage.setItem("playerName", name);
   document.getElementById("nameOverlay").style.display = "none";
 }
 
@@ -266,8 +309,16 @@ stations.forEach(s=>{
 });
 
 /* RESET */
-function resetGame(){
-  localStorage.clear();
+function openReset(){
+  document.getElementById("resetOverlay").style.display = "flex";
+}
+
+function closeReset(){
+  document.getElementById("resetOverlay").style.display = "none";
+}
+
+function confirmReset(){
+  localStorage.removeItem("visitedStations");
   location.reload();
 }
 
