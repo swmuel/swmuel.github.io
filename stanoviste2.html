@@ -114,13 +114,13 @@ button{
 const API = "https://script.google.com/macros/s/AKfycbx0t_2q7ohFvF4ZvTDEGEklEP6kNf5tFkAL89rb9ug2A5CV_a7XVMoOTyKeGjBNqjTY/exec";
 const stationId = 2;
 
-// Zabezpečí, že máme meno + playerId
-function ensurePlayerExists(){
+// Funkcia zabezpečí meno a playerId z localStorage
+function getPlayer(){
   let name = localStorage.getItem("playerName");
   let playerId = localStorage.getItem("playerId");
 
-  if (!name || !playerId) {
-    // Ak nie je meno ani id, môžeš napríklad použiť prednastavené meno + ID
+  if(!name || !playerId){
+    console.warn("Meno alebo ID hráča chýba, použije sa prednastavené");
     name = "Hráč";
     playerId = crypto.randomUUID();
     localStorage.setItem("playerName", name);
@@ -132,31 +132,26 @@ function ensurePlayerExists(){
 
 /* START ACTIVITY */
 function startActivity(){
-  let { name, playerId } = ensurePlayerExists();
+  const { name, playerId } = getPlayer();
 
   // uloz visited
   let visited = JSON.parse(localStorage.getItem("visitedStations") || "[]");
-  if (!Array.isArray(visited)) visited = [];
-  if (!visited.includes(stationId)) {
+  if(!Array.isArray(visited)) visited = [];
+  if(!visited.includes(stationId)){
     visited.push(stationId);
     localStorage.setItem("visitedStations", JSON.stringify(visited));
   }
 
   // posli score = 1
-  const payload = {
-    name,
-    playerId,
-    station: stationId,
-    score: 1
-  };
-
+  const payload = { name, playerId, station: stationId, score: 1 };
   const url = API + "?" + new URLSearchParams(payload).toString();
 
-  fetch(url, {method:"GET", mode:"no-cors"})
-    .catch(()=>{});
+  fetch(url)
+    .then(res => console.log("✅ Odoslané - Stanovisko 2"))
+    .catch(err => console.error(err));
 
   // otvor Wordwall
-  window.open("https://wordwall.net/resource/63266265/vybran%C3%A9-slov%C3%A1-po-b", "_blank");
+  window.open("https://wordwall.net/resource/63266265/vybrané-slová-po-b", "_blank");
 }
 
 /* RETURN */
