@@ -64,6 +64,7 @@ button:hover{
 .overlay-box button{
   margin:10px;
   width:120px;
+  font-size:1rem;
 }
 
 .overlay-box button:first-of-type{
@@ -111,7 +112,12 @@ document.getElementById("startBtn").addEventListener("click", ()=>{
   const url=API+"?"+new URLSearchParams(payload).toString();
   fetch(url,{method:"GET",mode:"no-cors"});
 
-  // otvorenie Wordwall
+  // pridanie stanovište 5 do visitedStations
+  let visited = JSON.parse(localStorage.getItem("visitedStations") || "[]");
+  if(!visited.includes(stationId)) visited.push(stationId);
+  localStorage.setItem("visitedStations", JSON.stringify(visited));
+
+  // otvorenie Wordwall aktivity
   window.open("https://wordwall.net/resource/81700395/scitanie-desiatky-jednotky","_blank");
 });
 
