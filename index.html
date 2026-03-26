@@ -8,206 +8,56 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
 <style>
-*{
-  box-sizing:border-box;
-  font-family:'Inter',system-ui;
-  -webkit-tap-highlight-color:transparent;
-}
-
-body{
-  margin:0;
-  min-height:100vh;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  color:white;
-  overflow-x:hidden;
-  background-image:url("https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fi.pinimg.com%2Foriginals%2Ff8%2F9f%2Fa3%2Ff89fa3316c37b3f2479d3301c0a09cd8.jpg&f=1&nofb=1");
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
-  padding-bottom:20px;
-}
-
-body::before{
-  content:"";
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.35);
-  z-index:-1;
-}
+*{ box-sizing:border-box; font-family:'Inter',system-ui; -webkit-tap-highlight-color:transparent; }
+body{ margin:0; min-height:100vh; display:flex; flex-direction:column; align-items:center; color:white; overflow-x:hidden; background-image:url("https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fi.pinimg.com%2Foriginals%2Ff8%2F9f%2Fa3%2Ff89fa3316c37b3f2479d3301c0a09cd8.jpg&f=1&nofb=1"); background-size: cover; background-position: center; background-attachment: fixed; padding-bottom:20px; }
+body::before{ content:""; position:fixed; inset:0; background:rgba(0,0,0,0.35); z-index:-1; }
 
 /* OVERLAY */
-.overlay{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.9);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  z-index:9999;
-}
-
-.overlay-box{
-  background:#064e3b;
-  padding:25px;
-  border-radius:20px;
-  text-align:center;
-  width:90%;
-  max-width:320px;
-  box-shadow:0 10px 40px rgba(0,0,0,0.6);
-}
-
-.overlay-box input{
-  padding:10px;
-  font-size:16px;
-  border-radius:10px;
-  border:none;
-  margin:15px 0;
-  width:100%;
-}
+.overlay{ position:fixed; inset:0; background:rgba(0,0,0,0.9); display:flex; align-items:center; justify-content:center; z-index:9999; }
+.overlay-box{ background:#064e3b; padding:25px; border-radius:20px; text-align:center; width:90%; max-width:320px; box-shadow:0 10px 40px rgba(0,0,0,0.6); }
+.overlay-box input{ padding:10px; font-size:16px; border-radius:10px; border:none; margin:15px 0; width:100%; }
 
 /* HEADER */
-header{
-  text-align:center;
-  padding:20px 10px;
-  width:100%;
-}
-
+header{ text-align:center; padding:20px 10px; width:100%; }
 h1{ color:#fbbf24; font-size:24px; }
 
-.progress-wrapper{
-  margin-top:15px;
-  background:#022c22;
-  border-radius:999px;
-  overflow:hidden;
-  height:12px;
-}
-
-.progress-bar{
-  height:100%;
-  width:0%;
-  background:linear-gradient(90deg,#fbbf24,#f59e0b);
-}
-
-.progress-text{
-  margin-top:5px;
-  color:#fde68a;
-  font-size:14px;
-}
-
-.reset-btn{
-  margin-top:10px;
-  background:#ef4444;
-  border:none;
-  padding:8px 16px;
-  border-radius:20px;
-  color:white;
-  cursor:pointer;
-}
+.progress-wrapper{ margin-top:15px; background:#022c22; border-radius:999px; overflow:hidden; height:12px; }
+.progress-bar{ height:100%; width:0%; background:linear-gradient(90deg,#fbbf24,#f59e0b); }
+.progress-text{ margin-top:5px; color:#fde68a; font-size:14px; }
+.reset-btn{ margin-top:10px; background:#ef4444; border:none; padding:8px 16px; border-radius:20px; color:white; cursor:pointer; }
 
 /* BOARD */
-.board{
-  width:95vw;
-  max-width:900px;
-  margin-top:20px;
-  padding:20px;
-  border-radius:25px;
-  background:linear-gradient(180deg,#9a6b3f,#7a512c);
-}
+.board{ width:95vw; max-width:900px; margin-top:20px; padding:20px; border-radius:25px; background:linear-gradient(180deg,#9a6b3f,#7a512c); }
 
 /* GRID */
-.map{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:20px;
-  justify-items:center;
-}
+.map{ display:grid; grid-template-columns:repeat(4,1fr); gap:20px; justify-items:center; }
 
 /* STATION */
-.station{
-  width:70px;
-  height:70px;
-  border-radius:50%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:26px;
-  cursor:pointer;
-  border:3px solid white;
-  transition:0.2s;
-}
-
-.station:active{
-  transform:scale(0.9);
-}
+.station{ width:70px; height:70px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:26px; cursor:pointer; border:3px solid white; transition:0.2s; }
+.station:active{ transform:scale(0.9); }
 
 /* VISITED */
-@keyframes popIn{
-  0%{ transform:scale(0.7); opacity:0; }
-  100%{ transform:scale(1.05); opacity:1; }
-}
-
-.station.visited{
-  box-shadow: 0 0 20px #fbbf24, 0 0 40px #f59e0b;
-  border-color:#fbbf24;
-  transform:scale(1.05);
-  animation: popIn 0.4s ease;
-}
+@keyframes popIn{ 0%{ transform:scale(0.7); opacity:0; } 100%{ transform:scale(1.05); opacity:1; } }
+.station.visited{ box-shadow: 0 0 20px #fbbf24, 0 0 40px #f59e0b; border-color:#fbbf24; transform:scale(1.05); animation: popIn 0.4s ease; }
 
 /* LABEL */
-.label{
-  text-align:center;
-  margin-top:5px;
-  font-size:11px;
-}
+.label{ text-align:center; margin-top:5px; font-size:11px; }
 
 /* EXIT BUTTONS */
-.overlay-box button{
-  padding:10px 18px;
-  border:none;
-  border-radius:12px;
-  font-weight:bold;
-  cursor:pointer;
-  margin:5px;
-}
-
-.overlay-box button:first-of-type{
-  background:#ef4444;
-  color:white;
-}
-
-.overlay-box button:last-of-type{
-  background:#fbbf24;
-}
+.overlay-box button{ padding:10px 18px; border:none; border-radius:12px; font-weight:bold; cursor:pointer; margin:5px; }
+.overlay-box button:first-of-type{ background:#ef4444; color:white; }
+.overlay-box button:last-of-type{ background:#fbbf24; }
 
 /* RESPONSIVE */
-@media (min-width: 600px){
-  .station{
-    width:85px;
-    height:85px;
-    font-size:32px;
-  }
-  .label{ font-size:13px; }
-}
-
-@media (min-width: 900px){
-  h1{ font-size:28px; }
-  .station{
-    width:100px;
-    height:100px;
-    font-size:40px;
-  }
-  .label{ font-size:14px; }
-  .map{ gap:30px; }
-}
+@media (min-width: 600px){ .station{ width:85px; height:85px; font-size:32px; } .label{ font-size:13px; } }
+@media (min-width: 900px){ h1{ font-size:28px; } .station{ width:100px; height:100px; font-size:40px; } .label{ font-size:14px; } .map{ gap:30px; } }
 </style>
 </head>
 
 <body>
 
 <!-- NAME OVERLAY -->
-<div id="nameOverlay" class="overlay">
+<div id="nameOverlay" class="overlay" style="display:none;">
   <div class="overlay-box">
     <h2>👤 Zadaj meno hráča</h2>
     <input type="text" id="nameInput" placeholder="Tvoje meno..." />
@@ -228,29 +78,21 @@ h1{ color:#fbbf24; font-size:24px; }
 
 <header>
 <h1>🌲 Čarovný Les 🌲</h1>
-
-<div class="progress-wrapper">
-  <div id="bar" class="progress-bar"></div>
-</div>
-
+<div class="progress-wrapper"><div id="bar" class="progress-bar"></div></div>
 <div id="progressText" class="progress-text">0 / 8 objavené</div>
-
 <button class="reset-btn" onclick="openReset()">🔄 RESET</button>
 </header>
 
 <div class="board">
 <div class="map">
-
 <div class="level"><div class="station" data-id="1" style="background:#7c3aed">🦉</div><div class="label">Domček Sovy</div></div>
 <div class="level"><div class="station" data-id="2" style="background:#3b82f6">🏰</div><div class="label">Hrad písmen</div></div>
 <div class="level"><div class="station" data-id="3" style="background:#ec4899">🌸</div><div class="label">Čarovná Lúka</div></div>
 <div class="level"><div class="station" data-id="4" style="background:#06b6d4">🎵</div><div class="label">Jazierko Melódie</div></div>
-
 <div class="level"><div class="station" data-id="5" style="background:#6366f1">🧙</div><div class="label">Čarodejnícka Dielňa</div></div>
 <div class="level"><div class="station" data-id="6" style="background:#22c55e">🏃</div><div class="label">Lesná Telocvičňa</div></div>
 <div class="level"><div class="station" data-id="7" style="background:#d97706">🐻</div><div class="label">Medvedí Brloh</div></div>
 <div class="level"><div class="station" data-id="8" style="background:#f43f5e">🌈</div><div class="label">Dúhový Vodopád</div></div>
-
 </div>
 </div>
 
@@ -266,14 +108,13 @@ function initPlayer(){
   let name = localStorage.getItem("playerName");
   let id = localStorage.getItem("playerId");
 
-  // 🔥 FIX: ak má meno ale nemá ID → vytvor ID
-  if(name && !id){
+  if(!name){
+    // 🔥 ZOBRAZ OVERLAY IBA AK MENO NEEXISTUJE
+    document.getElementById("nameOverlay").style.display = "flex";
+  } else if(!id){
+    // 🔥 AK NIE JE ID → vytvor ho
     id = crypto.randomUUID();
     localStorage.setItem("playerId", id);
-  }
-
-  if(!name){
-    document.getElementById("nameOverlay").style.display = "flex";
   }
 }
 
@@ -291,6 +132,7 @@ function submitName(){
   document.getElementById("nameOverlay").style.display = "none";
 }
 
+/* ENTER KEY */
 document.getElementById("nameInput").addEventListener("keypress", e=>{
   if(e.key === "Enter") submitName();
 });
@@ -315,18 +157,9 @@ stations.forEach(s=>{
 });
 
 /* RESET */
-function openReset(){
-  document.getElementById("resetOverlay").style.display = "flex";
-}
-
-function closeReset(){
-  document.getElementById("resetOverlay").style.display = "none";
-}
-
-function confirmReset(){
-  localStorage.clear(); // 🔥 vymaže aj meno → nový hráč
-  location.reload();
-}
+function openReset(){ document.getElementById("resetOverlay").style.display = "flex"; }
+function closeReset(){ document.getElementById("resetOverlay").style.display = "none"; }
+function confirmReset(){ localStorage.clear(); location.reload(); }
 
 /* START */
 initPlayer();
