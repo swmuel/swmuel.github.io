@@ -32,12 +32,12 @@
     font-size: 3em; 
     border: 4px solid rgba(255,255,255,0.4);
     background: linear-gradient(145deg, rgba(30,58,138,0.8), rgba(59,130,246,0.6));
-    color: transparent; /* SKRYJE TEXT NA ZAČIATKU */
+    color: transparent; 
     user-select: none;
     position: relative;
     box-shadow: 0 4px 15px rgba(0,0,0,0.3);
   }
-  .card::before { /* ZADNÁ STRANA */
+  .card::before { 
     content: "🦉";
     font-size: 2em;
     position: absolute;
@@ -51,7 +51,7 @@
     border-color: #fbbf24 !important; 
     transform: rotateY(180deg);
   }
-  .card.flipped::before { opacity: 0; } /* Skry zadnú stranu pri otočení */
+  .card.flipped::before { opacity: 0; }
   .card.matched { 
     background: rgba(251,191,36,0.6) !important; 
     border-color: #fbbf24 !important; 
@@ -71,34 +71,6 @@
     #gameArea { grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 12px; }
     .card { width: 80px; height: 80px; }
     .card::before { font-size: 1.6em; }
-  }
-
-  /* NAME OVERLAY */
-  #nameOverlay {
-    position: fixed;
-    inset:0;
-    background: rgba(0,0,0,0.85);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    color: white;
-    font-size: 1.3em;
-  }
-  #nameOverlay input {
-    font-size: 1.2em;
-    padding: 10px 15px;
-    border-radius: 10px;
-    border: none;
-    margin-top: 15px;
-    text-align: center;
-  }
-  #nameOverlay button {
-    margin-top: 15px;
-    font-size: 1.2em;
-    padding: 10px 20px;
-    border-radius: 10px;
   }
 
   /* RETURN OVERLAY */
@@ -131,13 +103,6 @@
 </head>
 <body>
 
-<!-- NAME OVERLAY -->
-<div id="nameOverlay">
-  <div>Prosím, zadaj svoje meno:</div>
-  <input type="text" id="playerNameInput" placeholder="Tvoje meno">
-  <button onclick="submitName()">Potvrdiť</button>
-</div>
-
 <!-- RETURN OVERLAY -->
 <div id="returnOverlay" class="overlay" style="display:none;">
   <div class="overlay-box">
@@ -158,12 +123,22 @@
 <script>
 "use strict";
 
-// 🔥 AK NEMÁ MENO → SPÄŤ NA INDEX
-if(!localStorage.getItem("playerName")){
-  window.location.href = "index.html";
+const API = "https://script.google.com/macros/s/AKfycbx0t_2q7ohFvF4ZvTDEGEklEP6kNf5tFkAL89rb9ug2A5CV_a7XVMoOTyKeGjBNqjTY/exec";
+
+// ✅ Funkcia na získanie mena a playerId
+function ensurePlayer() {
+  let name = localStorage.getItem("playerName");
+  let playerId = localStorage.getItem("playerId");
+
+  if (!name || !playerId) {
+    name = "Hráč";
+    playerId = crypto.randomUUID();
+    localStorage.setItem("playerName", name);
+    localStorage.setItem("playerId", playerId);
+  }
+  return { name, playerId };
 }
 
-const API = "https://script.google.com/macros/s/AKfycbx0t_2q7ohFvF4ZvTDEGEklEP6kNf5tFkAL89rb9ug2A5CV_a7XVMoOTyKeGjBNqjTY/exec";
 const gameArea = document.getElementById('gameArea');
 const statusEl = document.getElementById('status');
 const scoreEl = document.getElementById('score');
@@ -180,7 +155,7 @@ function shuffle(array) {
   return array.sort(() => Math.random() - 0.5);
 }
 
-/* START */
+/* START GAME */
 function startGame(){
   score = 0;
   matchesFound = 0;
@@ -197,7 +172,7 @@ function startGame(){
   statusEl.innerHTML = "🦉 Klikni na karty a nájdi rovnaké páry!";
 }
 
-/* GAME */
+/* FLIP CARD */
 function flipCard(index, card) {
   if (!gameActive || card.classList.contains('flipped') || card.classList.contains('matched') || flippedCards.length >= 2) return;
   
@@ -212,19 +187,17 @@ function flipCard(index, card) {
   }
 }
 
+/* CHECK MATCH */
 function checkMatch() {
   if (flippedCards[0].emoji === flippedCards[1].emoji) {
-
     flippedCards.forEach(({card}) => card.classList.add('matched'));
     matchesFound++;
-
     if (matchesFound === 8) {
       statusEl.innerHTML = `🎉 Hotovo! 🦉 Skóre: ${score}`;
       finishStation(score);
       gameActive = false;
       return;
     }
-
   } else {
     flippedCards.forEach(({card})=>{
       card.classList.remove('flipped');
@@ -237,13 +210,21 @@ function checkMatch() {
   scoreEl.textContent = `Páry nájdené: ${matchesFound}/8`;
 }
 
-/* RETURN */
+/* RETURN TO MAP */
 function returnToMap(){
   finishStation(score);
   window.location.href = "index.html";
 }
 
-/* 🔥 FINISH + SEND */
+function closeReturnOverlay(){
+  document.getElementById("returnOverlay").style.display = "none";
+}
+
+function confirmReturn(){
+  window.location.href = "index.html";
+}
+
+/* SEND SCORE */
 function finishStation(finalScore){
   const stationId = 1;
 
@@ -251,31 +232,21 @@ function finishStation(finalScore){
   if(!visited.includes(stationId)) visited.push(stationId);
   localStorage.setItem("visitedStations", JSON.stringify(visited));
 
-  const playerName = localStorage.getItem("playerName");
-  let playerId = localStorage.getItem("playerId");
-
-  // 🔥 FIX ID
-  if(!playerId){
-    playerId = crypto.randomUUID();
-    localStorage.setItem("playerId", playerId);
-  }
+  const { name, playerId } = ensurePlayer();
 
   const payload = {
-    name: playerName,
+    name,
     playerId,
     station: stationId,
     score: finalScore
   };
 
   const url = API + "?" + new URLSearchParams(payload).toString();
-
-  fetch(url)
-    .then(res => res.text())
-    .then(data => console.log("✅ Odoslané:", data))
-    .catch(err => console.error("❌ Chyba:", err));
+  fetch(url, {method:"GET", mode:"no-cors"})
+    .catch(()=>{});
 }
 
-/* START GAME */
+/* START */
 startGame();
 </script>
 </body>
