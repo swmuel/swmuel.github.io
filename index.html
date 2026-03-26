@@ -7,7 +7,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
 <style>
-*{box-sizing:border-box;font-family:'Inter',system-ui;-webkit-tap-highlight-color:transparent;}
+*{
+  box-sizing:border-box;
+  font-family:'Inter',system-ui;
+  -webkit-tap-highlight-color:transparent;
+}
 
 body{
   margin:0;
@@ -45,10 +49,12 @@ body::before{
 
 .overlay-box{
   background:#064e3b;
-  padding:30px;
+  padding:25px;
   border-radius:20px;
   text-align:center;
   box-shadow:0 10px 40px rgba(0,0,0,0.6);
+  width:90%;
+  max-width:300px;
 }
 
 .overlay-box input{
@@ -57,7 +63,7 @@ body::before{
   border-radius:10px;
   border:none;
   margin:15px 0;
-  width:220px;
+  width:100%;
 }
 
 .overlay-box button{
@@ -73,18 +79,18 @@ body::before{
 /* HEADER */
 header{
   text-align:center;
-  padding:20px;
+  padding:20px 10px;
   width:100%;
 }
 
-h1{ color:#fbbf24; }
+h1{ color:#fbbf24; font-size:24px; }
 
 .progress-wrapper{
   margin-top:15px;
   background:#022c22;
   border-radius:999px;
   overflow:hidden;
-  height:14px;
+  height:12px;
 }
 
 .progress-bar{
@@ -96,59 +102,96 @@ h1{ color:#fbbf24; }
 .progress-text{
   margin-top:5px;
   color:#fde68a;
-}
-
-/* BOARD */
-.board{
-  width:95vw;
-  max-width:900px;
-  margin-top:25px;
-  padding:40px;
-  border-radius:25px;
-  background:linear-gradient(180deg,#9a6b3f,#7a512c);
-}
-
-.map{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:30px;
-}
-
-.station{
-  width:100px;
-  height:100px;
-  border-radius:50%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:40px;
-  cursor:pointer;
-  border:3px solid white;
-}
-
-.station.visited{
-  filter:brightness(1.3);
-}
-
-.label{
-  text-align:center;
-  margin-top:5px;
-}
-
-.level{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
+  font-size:14px;
 }
 
 .reset-btn{
   margin-top:10px;
   background:#ef4444;
   border:none;
-  padding:10px 20px;
+  padding:8px 16px;
   border-radius:20px;
   color:white;
   cursor:pointer;
+}
+
+/* BOARD */
+.board{
+  width:95vw;
+  max-width:900px;
+  margin-top:20px;
+  padding:20px;
+  border-radius:25px;
+  background:linear-gradient(180deg,#9a6b3f,#7a512c);
+}
+
+/* GRID */
+.map{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:20px;
+  justify-items:center;
+}
+
+/* STATION */
+.station{
+  width:70px;
+  height:70px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:26px;
+  cursor:pointer;
+  border:3px solid white;
+  transition:0.2s;
+}
+
+.station:active{
+  transform:scale(0.9);
+}
+
+.station.visited{
+  filter:brightness(1.3);
+}
+
+/* LABEL */
+.label{
+  text-align:center;
+  margin-top:5px;
+  font-size:11px;
+}
+
+/* TABLET */
+@media (min-width: 600px){
+  .station{
+    width:85px;
+    height:85px;
+    font-size:32px;
+  }
+
+  .label{
+    font-size:13px;
+  }
+}
+
+/* DESKTOP */
+@media (min-width: 900px){
+  h1{ font-size:28px; }
+
+  .station{
+    width:100px;
+    height:100px;
+    font-size:40px;
+  }
+
+  .label{
+    font-size:14px;
+  }
+
+  .map{
+    gap:30px;
+  }
 }
 </style>
 </head>
@@ -177,10 +220,13 @@ h1{ color:#fbbf24; }
 
 <header>
 <h1>🌲 Čarovný Les 🌲</h1>
+
 <div class="progress-wrapper">
   <div id="bar" class="progress-bar"></div>
 </div>
+
 <div id="progressText" class="progress-text">0 / 8 objavené</div>
+
 <button class="reset-btn" onclick="resetGame()">🔄 RESET</button>
 </header>
 
@@ -189,12 +235,13 @@ h1{ color:#fbbf24; }
 
 <div class="level"><div class="station" data-id="1" style="background:#7c3aed">🦉</div><div class="label">Domček Sovy</div></div>
 <div class="level"><div class="station" data-id="2" style="background:#3b82f6">🏰</div><div class="label">Hrad písmen</div></div>
-<div class="level"><div class="station" data-id="3" style="background:#ec4899">🌸</div><div class="label">Lúka</div></div>
-<div class="level"><div class="station" data-id="4" style="background:#06b6d4">🎵</div><div class="label">Jazierko</div></div>
-<div class="level"><div class="station" data-id="5" style="background:#6366f1">🧙</div><div class="label">Dielňa</div></div>
-<div class="level"><div class="station" data-id="6" style="background:#22c55e">🏃</div><div class="label">Telocvičňa</div></div>
-<div class="level"><div class="station" data-id="7" style="background:#d97706">🐻</div><div class="label">Brloh</div></div>
-<div class="level"><div class="station" data-id="8" style="background:#f43f5e">🌈</div><div class="label">Vodopád</div></div>
+<div class="level"><div class="station" data-id="3" style="background:#ec4899">🌸</div><div class="label">Čarovná Lúka</div></div>
+<div class="level"><div class="station" data-id="4" style="background:#06b6d4">🎵</div><div class="label">Jazierko Melódie</div></div>
+
+<div class="level"><div class="station" data-id="5" style="background:#6366f1">🧙</div><div class="label">Čarodejnícka Dielňa</div></div>
+<div class="level"><div class="station" data-id="6" style="background:#22c55e">🏃</div><div class="label">Lesná Telocvičňa</div></div>
+<div class="level"><div class="station" data-id="7" style="background:#d97706">🐻</div><div class="label">Medvedí Brloh</div></div>
+<div class="level"><div class="station" data-id="8" style="background:#f43f5e">🌈</div><div class="label">Dúhový Vodopád</div></div>
 
 </div>
 </div>
@@ -208,7 +255,6 @@ const text = document.getElementById("progressText");
 
 let visited = new Set(JSON.parse(localStorage.getItem("visitedStations") || "[]"));
 
-// INIT PLAYER
 function initPlayer(){
     const name = localStorage.getItem("playerName");
     if(!name){
@@ -218,7 +264,6 @@ function initPlayer(){
     }
 }
 
-// SUBMIT NAME
 function submitName(){
     const input = document.getElementById("nameInput");
     const name = input.value.trim();
@@ -238,12 +283,10 @@ function submitName(){
     document.getElementById("nameOverlay").style.display = "none";
 }
 
-// ENTER KEY
 document.getElementById("nameInput").addEventListener("keypress", function(e){
     if(e.key === "Enter") submitName();
 });
 
-// PROGRESS
 function updateProgress(){
     visited.forEach(id=>{
         const el = document.querySelector(`[data-id="${id}"]`);
@@ -254,7 +297,6 @@ function updateProgress(){
     text.innerText = visited.size+" / 8 objavené";
 }
 
-// NAVIGATION
 stations.forEach(s=>{
     s.addEventListener("click", ()=>{
         const id = s.dataset.id;
@@ -262,22 +304,18 @@ stations.forEach(s=>{
     });
 });
 
-// RESET (OPEN MODAL)
 function resetGame(){
     document.getElementById("resetOverlay").style.display = "flex";
 }
 
-// CLOSE MODAL
 function closeReset(){
     document.getElementById("resetOverlay").style.display = "none";
 }
 
-// CONFIRM RESET
 function confirmReset(){
     const name = localStorage.getItem("playerName") || "unknown";
     const id = localStorage.getItem("playerId") || "unknown";
 
-    // pošli request ale nečakaj naň
     fetch(API + "?name=" + encodeURIComponent(name + " (KONIEC)") + "&playerId=" + id + "&station=-1&score=" + visited.size)
       .catch(()=>{});
 
@@ -285,7 +323,6 @@ function confirmReset(){
     location.reload();
 }
 
-// START
 initPlayer();
 updateProgress();
 </script>
