@@ -6,94 +6,79 @@
 <title>🏰 Hrad písmen - Stanovisko 2</title>
 
 <style>
-body {
-  font-family: Arial, sans-serif;
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
   background: linear-gradient(135deg, #1e3a8a, #6d28d9, #0f172a);
-  color: white;
-  text-align: center;
-  padding: 30px;
-  margin: 0;
+  color:white;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
 }
 
-h1 { font-size: 2.6em; }
-
-#hint {
-  font-size: 1.2em;
-  margin-bottom: 15px;
-  opacity: 0.9;
+/* HEADER */
+h1{
+  margin:20px 10px;
+  font-size:24px;
+  text-align:center;
+  color:#fbbf24;
 }
 
-#letters, #dropZone {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin: 25px 0;
+/* IFRAME CONTAINER */
+.game-container{
+  width:95vw;
+  max-width:900px;
+  height:70vh;
+  border-radius:20px;
+  overflow:hidden;
+  box-shadow:0 10px 30px rgba(0,0,0,0.5);
 }
 
-.letter {
-  width: 65px;
-  height: 65px;
-  background: #fbbf24;
-  color: black;
-  font-size: 2em;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 12px;
-  cursor: grab;
-  user-select: none;
-  transition: transform 0.2s;
+iframe{
+  width:100%;
+  height:100%;
+  border:none;
 }
 
-.letter.dragging {
-  transform: scale(1.15);
-  opacity: 0.8;
+/* BUTTON */
+button{
+  margin:15px;
+  padding:12px 25px;
+  font-size:16px;
+  border:none;
+  border-radius:20px;
+  background:#10b981;
+  color:white;
+  cursor:pointer;
 }
 
-.drop-slot {
-  width: 65px;
-  height: 65px;
-  border: 2px dashed rgba(255,255,255,0.5);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2em;
-  transition: transform 0.2s;
-}
-
-.drop-slot.filled {
-  background: rgba(255,255,255,0.1);
-}
-
-/* FINAL SCREEN */
-#finalScreen {
-  display:none;
+/* OVERLAY */
+.overlay{
   position:fixed;
   inset:0;
   background:rgba(0,0,0,0.9);
+  display:flex;
   align-items:center;
   justify-content:center;
-  z-index:9999;
+  z-index:2000;
 }
 
-.final-box {
+.overlay-box{
   background:#064e3b;
-  padding:40px;
+  padding:30px;
   border-radius:20px;
   text-align:center;
 }
 
-button {
-  margin-top:15px;
-  padding:10px 20px;
-  border:none;
-  border-radius:10px;
-  background:#10b981;
-  color:white;
-  font-size:16px;
-  cursor:pointer;
+/* RESPONSIVE */
+@media(min-width:600px){
+  h1{ font-size:28px; }
+}
+
+@media(min-width:900px){
+  .game-container{
+    height:75vh;
+  }
 }
 </style>
 </head>
@@ -102,153 +87,66 @@ button {
 
 <h1>🏰 Hrad písmen</h1>
 
-<div id="hint"></div>
+<div class="game-container">
+  <iframe src="https://wordwall.net/resource/63266265/vybran%C3%A9-slov%C3%A1-po-b"></iframe>
+</div>
 
-<div id="dropZone"></div>
-<div id="letters"></div>
+<button onclick="returnToMap()">🏠 Späť na mapu</button>
 
-<div id="finalScreen">
-  <div class="final-box">
-    <h2>🎉 Brány hradu sú vďaka tebe otvorené!</h2>
-    <p id="finalText"></p>
-    <button onclick="returnToMap()">🏠 Späť na mapu</button>
+<!-- EXIT OVERLAY -->
+<div id="returnOverlay" class="overlay" style="display:none;">
+  <div class="overlay-box">
+    <h2>🏠 Vrátiť sa na mapu?</h2>
+    <p>Chceš ukončiť Hrad písmen?</p>
+    <button onclick="confirmReturn()">Áno</button>
+    <button onclick="closeReturnOverlay()" style="background:#ef4444;">Zostať</button>
   </div>
 </div>
 
 <script>
 const API = "https://script.google.com/macros/s/AKfycbx0t_2q7ohFvF4ZvTDEGEklEP6kNf5tFkAL89rb9ug2A5CV_a7XVMoOTyKeGjBNqjTY/exec";
+const stationId = 2;
 
-const wordData = [
-  { word: "DOM", hint: "miesto, kde bývame" },
-  { word: "HRAD", hint: "veľká historická stavba" },
-  { word: "KNIHA", hint: "čítaš v nej príbehy" },
-  { word: "AUTO", hint: "vozíme sa na ňom" },
-  { word: "STOL", hint: "na ňom jeme alebo pracujeme" },
-  { word: "PES", hint: "najlepší priateľ človeka" },
-  { word: "LUK", hint: "strieľa šípy" }
-];
-
-let index = 0;
-let currentWord = "";
-let placed = [];
-let score = 0;
-
-const lettersDiv = document.getElementById("letters");
-const dropZone = document.getElementById("dropZone");
-const hintEl = document.getElementById("hint");
-const finalScreen = document.getElementById("finalScreen");
-const finalText = document.getElementById("finalText");
-
-function shuffle(arr){
-  return arr.sort(()=>Math.random()-0.5);
-}
-
-function loadWord(){
-  if(index >= wordData.length){
-    finishGame();
-    return;
-  }
-
-  const data = wordData[index];
-  currentWord = data.word;
-  placed = Array(currentWord.length).fill(null);
-
-  hintEl.textContent = "💡 Nápoveda: " + data.hint;
-
-  renderDropZone();
-  renderLetters();
-}
-
-function renderDropZone(){
-  dropZone.innerHTML = "";
-
-  for(let i=0;i<currentWord.length;i++){
-    const slot = document.createElement("div");
-    slot.className = "drop-slot";
-
-    slot.ondragover = e => e.preventDefault();
-
-    slot.ondrop = e => {
-      const letter = e.dataTransfer.getData("text");
-      placeLetter(i, letter, slot);
-    };
-
-    dropZone.appendChild(slot);
-  }
-}
-
-function renderLetters(){
-  lettersDiv.innerHTML = "";
-
-  const shuffled = shuffle(currentWord.split(""));
-
-  shuffled.forEach(letter=>{
-    const div = document.createElement("div");
-    div.className = "letter";
-    div.textContent = letter;
-
-    div.draggable = true;
-
-    div.ondragstart = e => {
-      e.dataTransfer.setData("text", letter);
-      div.classList.add("dragging");
-    };
-
-    div.ondragend = () => div.classList.remove("dragging");
-
-    lettersDiv.appendChild(div);
-  });
-}
-
-function placeLetter(index, letter, slot){
-  placed[index] = letter;
-  updateSlots();
-
-  if(placed.every(l => l !== null)){
-    checkWord();
-  }
-}
-
-function updateSlots(){
-  const slots = document.querySelectorAll(".drop-slot");
-
-  slots.forEach((slot, i)=>{
-    slot.textContent = placed[i] || "";
-    slot.classList.toggle("filled", !!placed[i]);
-  });
-}
-
-function checkWord(){
-  const formed = placed.join("");
-
-  if(formed === currentWord){
-    score++;
-    index++;
-    setTimeout(loadWord, 800);
-  } else {
-    alert("❌ Nesprávne, skús znova!");
-  }
-}
-
-function finishGame(){
-  const name = localStorage.getItem("playerName") || "unknown";
+/* SEND SCORE 1 ON LOAD */
+window.addEventListener("load", () => {
+  const name = localStorage.getItem("playerName");
   const playerId = localStorage.getItem("playerId");
 
-  finalText.textContent = "Hráč: " + name + " | Skóre: " + score + " / " + wordData.length;
+  if(!name || !playerId) return;
 
-  finalScreen.style.display = "flex";
+  // uloz visited
+  let visited = JSON.parse(localStorage.getItem("visitedStations") || "[]");
+  if(!visited.includes(stationId)){
+    visited.push(stationId);
+    localStorage.setItem("visitedStations", JSON.stringify(visited));
+  }
 
-  fetch(API + "?name=" + encodeURIComponent(name) + "&playerId=" + playerId + "&station=2&score=" + score)
+  const payload = {
+    name,
+    playerId,
+    station: stationId,
+    score: 1
+  };
+
+  const url = API + "?" + new URLSearchParams(payload).toString();
+
+  fetch(url, {method:"GET", mode:"no-cors"})
+    .then(()=>console.log("✅ score 1 odoslané"))
     .catch(()=>{});
+});
+
+/* RETURN */
+function returnToMap(){
+  document.getElementById("returnOverlay").style.display = "flex";
 }
 
-function returnToMap(){
+function closeReturnOverlay(){
+  document.getElementById("returnOverlay").style.display = "none";
+}
+
+function confirmReturn(){
   window.location.href = "index.html";
 }
-
-/* START */
-loadWord();
-
 </script>
 
 </body>
