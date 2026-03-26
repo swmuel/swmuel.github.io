@@ -234,12 +234,20 @@ function updateScore() {
   scoreEl.textContent = `Páry nájdené: ${matchesFound}/8`;
 }
 
+// 🔥 upravená funkcia — používa rovnaký playerID ako index.html
 function submitName(){
   const name = input.value.trim();
-  if(!name) return alert("Zadaj platné meno!");
-  const playerId = crypto.randomUUID();
+  if (!name) return alert("Zadaj platné meno!");
+
+  // Ak už playerId existuje, použi ho, inak vytvor nový
+  let playerId = localStorage.getItem("playerId");
+  if (!playerId) {
+    playerId = crypto.randomUUID();
+    localStorage.setItem("playerId", playerId);
+  }
+
   localStorage.setItem("playerName", name);
-  localStorage.setItem("playerId", playerId);
+  overlay.style.display = 'none';
   startGame();
 }
 
@@ -261,7 +269,7 @@ function finishStation(finalScore){
   const stationId = 1;
   let visited = JSON.parse(localStorage.getItem("visitedStations") || "[]");
   if(!Array.isArray(visited)) visited=[];
-  if(!visited.includes(stationId)) visited.push(stationId);
+  if (!visited.includes(stationId)) visited.push(stationId);
   localStorage.setItem("visitedStations", JSON.stringify(visited));
 
   const playerName = localStorage.getItem("playerName");
@@ -282,11 +290,11 @@ function finishStation(finalScore){
     .catch(err=>console.error(err));
 }
 
+// Ak už hráč má meno, ihneď spustí hru
 if(localStorage.getItem("playerName")){
   overlay.style.display='none';
   startGame();
 }
 </script>
-
 </body>
 </html>
