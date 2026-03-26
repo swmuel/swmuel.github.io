@@ -114,19 +114,30 @@ button{
 const API = "https://script.google.com/macros/s/AKfycbx0t_2q7ohFvF4ZvTDEGEklEP6kNf5tFkAL89rb9ug2A5CV_a7XVMoOTyKeGjBNqjTY/exec";
 const stationId = 2;
 
+// Zabezpečí, že máme meno + playerId
+function ensurePlayerExists(){
+  let name = localStorage.getItem("playerName");
+  let playerId = localStorage.getItem("playerId");
+
+  if (!name || !playerId) {
+    // Ak nie je meno ani id, môžeš napríklad použiť prednastavené meno + ID
+    name = "Hráč";
+    playerId = crypto.randomUUID();
+    localStorage.setItem("playerName", name);
+    localStorage.setItem("playerId", playerId);
+  }
+
+  return { name, playerId };
+}
+
 /* START ACTIVITY */
 function startActivity(){
-  const name = localStorage.getItem("playerName");
-  const playerId = localStorage.getItem("playerId");
-
-  if(!name || !playerId){
-    alert("Chýba meno hráča!");
-    return;
-  }
+  let { name, playerId } = ensurePlayerExists();
 
   // uloz visited
   let visited = JSON.parse(localStorage.getItem("visitedStations") || "[]");
-  if(!visited.includes(stationId)){
+  if (!Array.isArray(visited)) visited = [];
+  if (!visited.includes(stationId)) {
     visited.push(stationId);
     localStorage.setItem("visitedStations", JSON.stringify(visited));
   }
