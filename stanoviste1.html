@@ -158,34 +158,46 @@
 <script>
 "use strict";
 
+// 🔥 AK NEMÁ MENO → SPÄŤ NA INDEX
+if(!localStorage.getItem("playerName")){
+  window.location.href = "index.html";
+}
+
 const API = "https://script.google.com/macros/s/AKfycbx0t_2q7ohFvF4ZvTDEGEklEP6kNf5tFkAL89rb9ug2A5CV_a7XVMoOTyKeGjBNqjTY/exec";
 const gameArea = document.getElementById('gameArea');
 const statusEl = document.getElementById('status');
 const scoreEl = document.getElementById('score');
-const overlay = document.getElementById('nameOverlay');
-const input = document.getElementById('playerNameInput');
 
 const pairs = ['🦉','🌙','🌲','🐿️','🍄','⭐','👁️','🕸️','🦉','🌙','🌲','🐿️','🍄','⭐','👁️','🕸️'];
-let flippedCards = [], score = 0, matchesFound = 0, gameActive = true;
 
+let flippedCards = [];
+let score = 0;
+let matchesFound = 0;
+let gameActive = true;
+
+/* SHUFFLE */
 function shuffle(array) {
   return array.sort(() => Math.random() - 0.5);
 }
 
+/* START */
 function startGame(){
-  overlay.style.display = 'none';
   score = 0;
   matchesFound = 0;
   gameActive = true;
   flippedCards = [];
+
   const shuffledPairs = shuffle(pairs.slice());
+
   gameArea.innerHTML = shuffledPairs.map((emoji, i) => 
     `<div class="card" onclick="flipCard(${i}, this)" data-emoji="${emoji}">🦉</div>`
   ).join('');
-  scoreEl.textContent = `Páry nájdené: ${matchesFound}/8`;
-  statusEl.innerHTML = "🦉 Klikni na karty a nájdi rovnaké páry! (8 párov)";
+
+  scoreEl.textContent = `Páry nájdené: 0/8`;
+  statusEl.innerHTML = "🦉 Klikni na karty a nájdi rovnaké páry!";
 }
 
+/* GAME */
 function flipCard(index, card) {
   if (!gameActive || card.classList.contains('flipped') || card.classList.contains('matched') || flippedCards.length >= 2) return;
   
@@ -196,105 +208,75 @@ function flipCard(index, card) {
   if (flippedCards.length === 2) {
     gameActive = false;
     score++;
-    setTimeout(checkMatch, 1000);
+    setTimeout(checkMatch, 800);
   }
-  updateScore();
 }
 
 function checkMatch() {
   if (flippedCards[0].emoji === flippedCards[1].emoji) {
-    // Match!
-    flippedCards.forEach(({card}) => {
-      card.classList.add('matched');
-    });
+
+    flippedCards.forEach(({card}) => card.classList.add('matched'));
     matchesFound++;
-    statusEl.innerHTML = `✅ Nájdený pár ${matchesFound}/8! 🦉`;
-    
+
     if (matchesFound === 8) {
-      statusEl.innerHTML = `🎉 Všetky páry nájdené! Super múdra sova! 🦉✨<br>Skóre: ${score} pokusov`;
+      statusEl.innerHTML = `🎉 Hotovo! 🦉 Skóre: ${score}`;
       finishStation(score);
       gameActive = false;
       return;
     }
+
   } else {
-    // No match
-    statusEl.innerHTML = "❌ Nie sú rovnaké! Skús znova! 🦉";
-    flippedCards.forEach(({card}) => {
+    flippedCards.forEach(({card})=>{
       card.classList.remove('flipped');
       card.textContent = '🦉';
     });
   }
-  
+
   flippedCards = [];
   gameActive = true;
-  updateScore();
-}
-
-function updateScore() {
   scoreEl.textContent = `Páry nájdené: ${matchesFound}/8`;
 }
 
-// 🔥 upravená funkcia — používa rovnaký playerID ako index.html
-function submitName(){
-  const name = input.value.trim();
-  if (!name) return alert("Zadaj platné meno!");
-
-  // Ak už playerId existuje, použi ho, inak vytvor nový
-  let playerId = localStorage.getItem("playerId");
-  if (!playerId) {
-    playerId = crypto.randomUUID();
-    localStorage.setItem("playerId", playerId);
-  }
-
-  localStorage.setItem("playerName", name);
-  overlay.style.display = 'none';
-  startGame();
-}
-
-/* EXIT MODAL LOGIC */
+/* RETURN */
 function returnToMap(){
-  document.getElementById("returnOverlay").style.display = "flex";
-}
-
-function closeReturnOverlay(){
-  document.getElementById("returnOverlay").style.display = "none";
-}
-
-function confirmReturn(){
   finishStation(score);
   window.location.href = "index.html";
 }
 
+/* 🔥 FINISH + SEND */
 function finishStation(finalScore){
   const stationId = 1;
+
   let visited = JSON.parse(localStorage.getItem("visitedStations") || "[]");
-  if(!Array.isArray(visited)) visited=[];
-  if (!visited.includes(stationId)) visited.push(stationId);
+  if(!visited.includes(stationId)) visited.push(stationId);
   localStorage.setItem("visitedStations", JSON.stringify(visited));
 
   const playerName = localStorage.getItem("playerName");
-  const playerId = localStorage.getItem("playerId");
+  let playerId = localStorage.getItem("playerId");
 
-  if(!playerName || !playerId){
-    console.error("Meno alebo ID hráča chýba!");
-    return;
+  // 🔥 FIX ID
+  if(!playerId){
+    playerId = crypto.randomUUID();
+    localStorage.setItem("playerId", playerId);
   }
 
-  const payload = {name: playerName, playerId, station: stationId, score: finalScore || score};
+  const payload = {
+    name: playerName,
+    playerId,
+    station: stationId,
+    score: finalScore
+  };
+
   const url = API + "?" + new URLSearchParams(payload).toString();
 
-  statusEl.innerHTML += "<br>📤 Odosielam dáta...";
-
-  fetch(url,{method:"GET",mode:"no-cors"})
-    .then(()=>console.log("✅ Odoslané - Stanovisko 1"))
-    .catch(err=>console.error(err));
+  fetch(url)
+    .then(res => res.text())
+    .then(data => console.log("✅ Odoslané:", data))
+    .catch(err => console.error("❌ Chyba:", err));
 }
 
-// Ak už hráč má meno, ihneď spustí hru
-if(localStorage.getItem("playerName")){
-  overlay.style.display='none';
-  startGame();
-}
+/* START GAME */
+startGame();
 </script>
 </body>
 </html>
