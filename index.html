@@ -263,10 +263,16 @@ let visited = new Set(JSON.parse(localStorage.getItem("visitedStations") || "[]"
 
 /* NAME */
 function initPlayer(){
-  const name = localStorage.getItem("playerName");
-  const id = localStorage.getItem("playerId");
+  let name = localStorage.getItem("playerName");
+  let id = localStorage.getItem("playerId");
 
-  if(!name || !id){
+  // 🔥 FIX: ak má meno ale nemá ID → vytvor ID
+  if(name && !id){
+    id = crypto.randomUUID();
+    localStorage.setItem("playerId", id);
+  }
+
+  if(!name){
     document.getElementById("nameOverlay").style.display = "flex";
   }
 }
@@ -318,7 +324,7 @@ function closeReset(){
 }
 
 function confirmReset(){
-  localStorage.removeItem("visitedStations");
+  localStorage.clear(); // 🔥 vymaže aj meno → nový hráč
   location.reload();
 }
 
