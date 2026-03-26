@@ -97,44 +97,69 @@
 
 const overlay = document.getElementById('nameOverlay');
 const input = document.getElementById('playerNameInput');
+const stationId = 3;
+const API = "https://script.google.com/macros/s/AKfycbx0t_2q7ohFvF4ZvTDEGEklEP6kNf5tFkAL89rb9ug2A5CV_a7XVMoOTyKeGjBNqjTY/exec";
 
+// Funkcia na získanie mena a ID hráča
+function getPlayer(){
+  let name = localStorage.getItem("playerName");
+  let playerId = localStorage.getItem("playerId");
+
+  if(!name || !playerId){
+    console.warn("Meno alebo ID hráča chýba, použije sa prednastavené");
+    name = "Hráč";
+    playerId = crypto.randomUUID();
+    localStorage.setItem("playerName", name);
+    localStorage.setItem("playerId", playerId);
+  }
+
+  return { name, playerId };
+}
+
+// Zápis mena
 function submitName(){
   const name = input.value.trim();
-  if (!name) return alert("Zadaj meno!");
+  if(!name) return alert("Zadaj meno!");
 
-  // Ak už playerId existuje, použi ho, inak vytvor nový
   let playerId = localStorage.getItem("playerId");
-  if (!playerId) {
-    playerId = crypto.randomUUID();
-  }
+  if(!playerId) playerId = crypto.randomUUID();
+
   localStorage.setItem("playerName", name);
   localStorage.setItem("playerId", playerId);
-
   overlay.style.display = "none";
 }
 
+// Otvorenie Wordwall + odoslanie score
 function openGame(){
-  window.open(
-    "https://wordwall.net/resource/55019181/su%C4%8Det-do-100-%C4%8Dislo-4",
-    "_blank"
-  );
+  const { name, playerId } = getPlayer();
+
+  // Uložiť visited
+  let visited = JSON.parse(localStorage.getItem("visitedStations") || "[]");
+  if(!Array.isArray(visited)) visited = [];
+  if(!visited.includes(stationId)){
+    visited.push(stationId);
+    localStorage.setItem("visitedStations", JSON.stringify(visited));
+  }
+
+  // Poslať score
+  const payload = { name, playerId, station: stationId, score: 1 };
+  const url = API + "?" + new URLSearchParams(payload).toString();
+
+  fetch(url, { method: "GET", mode: "no-cors" })
+    .then(() => console.log("✅ Odoslané - Stanovisko 3"))
+    .catch(err => console.error(err));
+
+  // Otvoriť Wordwall
+  window.open("https://wordwall.net/resource/55019181/su%C4%8Det-do-100-%C4%8Dislo-4", "_blank");
 }
 
-/* EXIT MODAL */
-function returnToMap(){
-  document.getElementById("returnOverlay").style.display = "flex";
-}
-function closeReturnOverlay(){
-  document.getElementById("returnOverlay").style.display = "none";
-}
-function confirmReturn(){
-  window.location.href = "index.html";
-}
+// EXIT MODAL
+function returnToMap(){ document.getElementById("returnOverlay").style.display = "flex"; }
+function closeReturnOverlay(){ document.getElementById("returnOverlay").style.display = "none"; }
+function confirmReturn(){ window.location.href = "index.html"; }
 
-/* AUTO SKIP NAME */
-if (localStorage.getItem("playerName")) {
-  overlay.style.display = "none";
-}
+// AUTO SKIP NAME
+if(localStorage.getItem("playerName")) overlay.style.display = "none";
 </script>
 
 </body>
