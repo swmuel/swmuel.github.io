@@ -7,174 +7,115 @@
 
 <style>
 body{
-font-family:Inter,system-ui;
-background:#064e3b;
-color:white;
-text-align:center;
-padding:40px;
+  font-family:Inter,system-ui;
+  background:#064e3b;
+  color:white;
+  text-align:center;
+  padding:40px 20px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  min-height:100vh;
 }
 
 h1{
-color:#fbbf24;
-text-shadow:2px 2px 4px rgba(0,0,0,0.5);
+  color:#fbbf24;
+  text-shadow:2px 2px 4px rgba(0,0,0,0.5);
+  font-size:2rem;
+  margin-bottom:25px;
 }
 
+/* Buttons */
 button{
-font-size:22px;
-padding:15px 30px;
-margin:10px;
-background:#f59e0b;
-border:none;
-border-radius:15px;
-cursor:pointer;
-transition:all 0.2s;
+  font-size:1.2rem;
+  padding:15px 25px;
+  margin:15px;
+  background:#f59e0b;
+  border:none;
+  border-radius:15px;
+  cursor:pointer;
+  transition:all 0.2s;
 }
 
 button:hover{
-background:#fbbf24;
-transform:scale(1.05);
+  background:#fbbf24;
+  transform:scale(1.05);
 }
 
-.answer-btn{
-width:70px;
-height:70px;
-font-size:24px;
-border-radius:12px;
-}
-
-.answer-btn.wrong{
-background:#ef4444 !important;
-}
-
-.answer-btn.correct{
-background:#10b981 !important;
-transform:scale(1.1);
-}
-
-#gameArea img{
-max-width:300px;
-border-radius:15px;
-margin-top:20px;
-}
-
-#status{
-margin-top:20px;
-padding:15px;
-border-radius:10px;
-}
-
+/* EXIT OVERLAY */
 .overlay{
-position:fixed;
-inset:0;
-background:rgba(0,0,0,0.9);
-display:flex;
-align-items:center;
-justify-content:center;
-z-index:2000;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.9);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:2000;
 }
 .overlay-box{
-background:#064e3b;
-padding:30px;
-border-radius:20px;
+  background:#064e3b;
+  padding:30px;
+  border-radius:20px;
+  text-align:center;
+  width:90%;
+  max-width:350px;
+}
+
+.overlay-box button{
+  margin:10px;
+  width:120px;
+}
+
+.overlay-box button:first-of-type{
+  background:#ef4444;
+  color:white;
+}
+
+.overlay-box button:last-of-type{
+  background:#fbbf24;
 }
 </style>
 </head>
 
 <body>
 
+<h1>🧙 Čarodejnícka dielňa</h1>
+<p>Pomôž čarodejníkovi vyriešiť aktivitu! Klikni na tlačidlo nižšie.</p>
+
+<button id="startBtn">🧩 Otvoriť aktivitu</button>
+<button onclick="showReturnOverlay()">🏠 Späť na mapu</button>
+
+<!-- RETURN OVERLAY -->
 <div id="returnOverlay" class="overlay" style="display:none;">
   <div class="overlay-box">
     <h2>🏠 Vrátiť sa na mapu?</h2>
+    <p>Chceš ukončiť Čarodejnícku dielňu?</p>
     <button onclick="confirmReturn()">Áno</button>
-    <button onclick="closeReturnOverlay()" style="background:#ef4444;">Zostať</button>
+    <button onclick="closeReturnOverlay()">Zostať</button>
   </div>
 </div>
-
-<h1>🧙 Čarodejnícka dielňa</h1>
-<p>Spočítaj zvieratká a klikni správny počet!</p>
-
-<div id="gameArea"></div>
-<div id="buttons"></div>
-<div id="status"></div>
 
 <script>
 "use strict";
 
-const tasks = [
-{img:"https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fa-z-animals.com%2Fmedia%2Fanimals%2Fimages%2Foriginal%2Fafrican_bush_elephant_24.jpg&f=1&nofb=1", answer:1},
-{img:"https://www.worldanimalprotection.org/contentassets/3f61b50106fc4125a9aaec4cba4eb757/sheep-pasture/", answer:3},
-{img:"https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fst.depositphotos.com%2F1003722%2F3674%2Fi%2F450%2Fdepositphotos_36747987-stock-photo-set-of-five-fishes-isolated.jpg&f=1&nofb=1", answer:5},
-{img:"https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fstatic.vecteezy.com%2Fsystem%2Fresources%2Fpreviews%2F014%2F904%2F606%2Fnon_2x%2Fisolated-composition-with-four-little-birds-vector.jpg&f=1&nofb=1", answer:4},
-{img:"https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fwallpapercrafter.com%2Fdesktop8%2F1884207-dogs-look-background-puppies-puppy-three-trio.jpg&f=1&nofb=1", answer:3},
-{img:"https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fimg.freepik.com%2Fpremium-photo%2Ftwo-pigs-running-dirt-sunny-day-with-splashes-mud_636705-20752.jpg&f=1&nofb=1", answer:2},
-{img:"https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fi.pinimg.com%2Foriginals%2F03%2Fa0%2F52%2F03a052bc583ff1470b73fd68b84cd27e.jpg&f=1&nofb=1", answer:2},
-{img:"https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fa-z-animals.com%2Fmedia%2F2023%2F09%2Fshutterstock-1744105886-huge-licensed-scaled-1024x678.jpg&f=1&nofb=1", answer:1},
-{img:"https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fimg.freepik.com%2Fpremium-photo%2Ftwo-bats-hanging-upside-down-from-tree_1021856-17824.jpg&f=1&nofb=1", answer:2},
-{img:"http://3.bp.blogspot.com/-NwetsXuK5Jw/TtDYLnMG9MI/AAAAAAAADns/_xIYMNDz_l8/s1600/hamsters.JPG", answer:5}
-];
-
-let current = 0;
-
-const btnContainer = document.getElementById("buttons");
-for(let i=1;i<=5;i++){
-  const btn = document.createElement("button");
-  btn.textContent = i;
-  btn.className = "answer-btn";
-  btn.onclick = ()=>checkAnswer(i, btn);
-  btnContainer.appendChild(btn);
-}
-
-function showTask(){
-  if(current >= tasks.length){
-    document.getElementById("status").innerHTML = "🎉 Hotovo!";
-    finishStation(5);
-    return;
-  }
-
-  document.getElementById("gameArea").innerHTML =
-    `<img src="${tasks[current].img}">`;
-
-  document.getElementById("status").innerHTML = `Kolo ${current+1}/10`;
-
-  document.querySelectorAll(".answer-btn").forEach(b=>{
-    b.classList.remove("wrong","correct");
-  });
-}
-
-function checkAnswer(value, btn){
-  if(value === tasks[current].answer){
-    btn.classList.add("correct");
-
-    setTimeout(()=>{
-      current++;
-      showTask();
-    },600);
-
-  } else {
-    btn.classList.add("wrong");
-  }
-}
-
-showTask();
-
-/* finish */
-
 const API="https://script.google.com/macros/s/AKfycbx0t_2q7ohFvF4ZvTDEGEklEP6kNf5tFkAL89rb9ug2A5CV_a7XVMoOTyKeGjBNqjTY/exec";
+const stationId = 5;
 
-function finishStation(id){
+/* START BUTTON */
+document.getElementById("startBtn").addEventListener("click", ()=>{
   let playerName = localStorage.getItem("playerName") || "Hráč";
   let playerId = localStorage.getItem("playerId") || "hrac_"+Date.now();
 
-  const payload={name:playerName,playerId,station:id,score:1};
+  // odoslanie skóre 1 hneď po otvorení
+  const payload={name:playerName,playerId,station:stationId,score:1};
   const url=API+"?"+new URLSearchParams(payload).toString();
-
   fetch(url,{method:"GET",mode:"no-cors"});
 
-  setTimeout(()=>{
-    showReturnOverlay();
-  },1000);
-}
+  // otvorenie Wordwall
+  window.open("https://wordwall.net/resource/81700395/scitanie-desiatky-jednotky","_blank");
+});
 
+/* RETURN OVERLAY */
 function showReturnOverlay(){
   document.getElementById("returnOverlay").style.display="flex";
 }
