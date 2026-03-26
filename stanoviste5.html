@@ -104,8 +104,20 @@ const stationId = 5;
 
 /* START BUTTON */
 document.getElementById("startBtn").addEventListener("click", ()=>{
-  let playerName = localStorage.getItem("playerName") || "Hráč";
-  let playerId = localStorage.getItem("playerId") || "hrac_"+Date.now();
+  // uloženie mena a ID ak ešte neexistujú
+  let playerName = localStorage.getItem("playerName");
+  let playerId = localStorage.getItem("playerId");
+
+  if(!playerName){
+    playerName = prompt("Zadaj svoje meno:","Hráč");
+    if(!playerName) playerName = "Hráč";
+    localStorage.setItem("playerName", playerName);
+  }
+
+  if(!playerId){
+    playerId = "hrac_"+Date.now();
+    localStorage.setItem("playerId", playerId);
+  }
 
   // odoslanie skóre 1 hneď po otvorení
   const payload={name:playerName,playerId,station:stationId,score:1};
@@ -132,6 +144,5 @@ function confirmReturn(){
   window.location.href="index.html";
 }
 </script>
-
 </body>
 </html>
