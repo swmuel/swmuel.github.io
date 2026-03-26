@@ -100,9 +100,16 @@ const input = document.getElementById('playerNameInput');
 
 function submitName(){
   const name = input.value.trim();
-  if(!name) return alert("Zadaj meno!");
+  if (!name) return alert("Zadaj meno!");
+
+  // Ak už playerId existuje, použi ho, inak vytvor nový
+  let playerId = localStorage.getItem("playerId");
+  if (!playerId) {
+    playerId = crypto.randomUUID();
+  }
   localStorage.setItem("playerName", name);
-  localStorage.setItem("playerId", crypto.randomUUID());
+  localStorage.setItem("playerId", playerId);
+
   overlay.style.display = "none";
 }
 
@@ -125,7 +132,7 @@ function confirmReturn(){
 }
 
 /* AUTO SKIP NAME */
-if(localStorage.getItem("playerName")){
+if (localStorage.getItem("playerName")) {
   overlay.style.display = "none";
 }
 </script>
