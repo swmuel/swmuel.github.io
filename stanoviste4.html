@@ -253,10 +253,19 @@ function finishStation(finalScore){
   if(!visited.includes(stationId)) visited.push(stationId);
   localStorage.setItem("visitedStations", JSON.stringify(visited));
 
-  let playerName = localStorage.getItem("playerName") || prompt("Zadaj svoje meno:", "Hráč") || "Hráč";
-  localStorage.setItem("playerName", playerName);
-  let playerId = localStorage.getItem("playerId") || "hrac_" + Date.now();
-  localStorage.setItem("playerId", playerId);
+  // Zabezpečí meno
+  let playerName = localStorage.getItem("playerName");
+  if (!playerName) {
+    playerName = prompt("Zadaj svoje meno:", "Hráč") || "Hráč";
+    localStorage.setItem("playerName", playerName);
+  }
+
+  // Použije rovnaký playerId ako v index.html
+  let playerId = localStorage.getItem("playerId");
+  if (!playerId) {
+    playerId = crypto.randomUUID();
+    localStorage.setItem("playerId", playerId);
+  }
 
   const payload = {name: playerName, playerId, station: stationId, score: finalScore || 0};
   const url = API + "?" + new URLSearchParams(payload).toString();
