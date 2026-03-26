@@ -178,6 +178,7 @@
 "use strict";
 
 const API = "https://script.google.com/macros/s/AKfycbx0t_2q7ohFvF4ZvTDEGEklEP6kNf5tFkAL89rb9ug2A5CV_a7XVMoOTyKeGjBNqjTY/exec";
+const stationId = 7;
 
 const questions = [
   {word:"dog", options:["pes","mačka","auto"], correct:"pes"},
@@ -198,9 +199,7 @@ const statusEl = document.getElementById("status");
 const overlay = document.getElementById("nameOverlay");
 const input = document.getElementById("playerNameInput");
 
-function shuffle(arr){
-  return arr.sort(()=>Math.random()-0.5);
-}
+function shuffle(arr){ return arr.sort(()=>Math.random()-0.5); }
 
 function showQuestion(){
   if(current >= questions.length){
@@ -220,9 +219,7 @@ function showQuestion(){
     const div = document.createElement("div");
     div.className = "option";
     div.textContent = opt;
-
     div.onclick = () => checkAnswer(opt, div, q.correct);
-
     optionsEl.appendChild(div);
   });
 
@@ -252,21 +249,25 @@ function checkAnswer(selected, el, correct){
 
 /* NAME */
 function submitName(){
-  const name = input.value.trim();
+  let name = input.value.trim();
   if(!name) return alert("Zadaj meno!");
-  const playerId = crypto.randomUUID();
+
+  let playerId = localStorage.getItem("playerId");
+  if(!playerId) playerId = crypto.randomUUID();
+
   localStorage.setItem("playerName", name);
   localStorage.setItem("playerId", playerId);
-  startGame();
-}
 
-function startGame(){
+  // odoslať hneď 0 skóre pre highlight v indexe
+  finishStation(0);
+
   overlay.style.display = "none";
   showQuestion();
 }
 
 /* RETURN */
 function returnToMap(){
+  finishStation(score); // odošli aktuálne skóre
   document.getElementById("returnOverlay").style.display = "flex";
 }
 
@@ -275,21 +276,20 @@ function closeReturnOverlay(){
 }
 
 function confirmReturn(){
-  finishStation(score);
+  finishStation(score); 
   window.location.href = "index.html";
 }
 
 /* GOOGLE SHEET */
 function finishStation(finalScore){
-  const stationId = 7;
+  const playerName = localStorage.getItem("playerName");
+  const playerId = localStorage.getItem("playerId");
+  if(!playerName || !playerId) return;
+
+  // uloženie visitedStations pre highlight
   let visited = JSON.parse(localStorage.getItem("visitedStations") || "[]");
   if(!visited.includes(stationId)) visited.push(stationId);
   localStorage.setItem("visitedStations", JSON.stringify(visited));
-
-  const playerName = localStorage.getItem("playerName");
-  const playerId = localStorage.getItem("playerId");
-
-  if(!playerName || !playerId) return;
 
   const payload = {
     name: playerName,
@@ -300,17 +300,15 @@ function finishStation(finalScore){
 
   const url = API + "?" + new URLSearchParams(payload).toString();
 
-  statusEl.innerHTML += "<br>📤 Odosielam dáta...";
-
-  fetch(url, {method:"GET", mode:"no-cors"})
-    .then(()=>console.log("✅ Odoslané"))
+  fetch(url,{method:"GET",mode:"no-cors"})
+    .then(()=>console.log("✅ Dáta odoslané"))
     .catch(err=>console.error(err));
 }
 
 /* AUTO START */
 if(localStorage.getItem("playerName")){
   overlay.style.display = "none";
-  startGame();
+  showQuestion();
 }
 </script>
 
