@@ -14,42 +14,49 @@ body{
   display:flex;
   flex-direction:column;
   align-items:center;
-}
-
-/* HEADER */
-h1{
-  margin:20px 10px;
-  font-size:24px;
+  justify-content:center;
+  min-height:100vh;
   text-align:center;
+  padding:20px;
+}
+
+h1{
   color:#fbbf24;
+  margin-bottom:20px;
+  font-size:26px;
 }
 
-/* IFRAME CONTAINER */
-.game-container{
-  width:95vw;
-  max-width:900px;
-  height:70vh;
+/* BOX */
+.box{
+  background:rgba(0,0,0,0.4);
+  padding:25px;
   border-radius:20px;
-  overflow:hidden;
-  box-shadow:0 10px 30px rgba(0,0,0,0.5);
-}
-
-iframe{
+  max-width:400px;
   width:100%;
-  height:100%;
-  border:none;
 }
 
-/* BUTTON */
+/* BUTTONS */
 button{
-  margin:15px;
-  padding:12px 25px;
-  font-size:16px;
+  width:100%;
+  padding:14px;
+  margin:10px 0;
   border:none;
-  border-radius:20px;
-  background:#10b981;
-  color:white;
+  border-radius:15px;
+  font-size:16px;
   cursor:pointer;
+  transition:0.2s;
+}
+
+.start{
+  background:#10b981;
+}
+
+.start:hover{
+  transform:scale(1.05);
+}
+
+.exit{
+  background:#ef4444;
 }
 
 /* OVERLAY */
@@ -72,13 +79,12 @@ button{
 
 /* RESPONSIVE */
 @media(min-width:600px){
-  h1{ font-size:28px; }
+  h1{ font-size:30px; }
+  button{ font-size:18px; }
 }
 
 @media(min-width:900px){
-  .game-container{
-    height:75vh;
-  }
+  .box{ max-width:500px; }
 }
 </style>
 </head>
@@ -87,11 +93,12 @@ button{
 
 <h1>🏰 Hrad písmen</h1>
 
-<div class="game-container">
-  <iframe src="https://wordwall.net/resource/63266265/vybran%C3%A9-slov%C3%A1-po-b"></iframe>
-</div>
+<div class="box">
+  <p>Precvič si vybrané slová po B a otvor brány hradu!</p>
 
-<button onclick="returnToMap()">🏠 Späť na mapu</button>
+  <button class="start" onclick="startActivity()">🚀 Spustiť aktivitu</button>
+  <button class="exit" onclick="returnToMap()">🏠 Späť na mapu</button>
+</div>
 
 <!-- EXIT OVERLAY -->
 <div id="returnOverlay" class="overlay" style="display:none;">
@@ -107,12 +114,15 @@ button{
 const API = "https://script.google.com/macros/s/AKfycbx0t_2q7ohFvF4ZvTDEGEklEP6kNf5tFkAL89rb9ug2A5CV_a7XVMoOTyKeGjBNqjTY/exec";
 const stationId = 2;
 
-/* SEND SCORE 1 ON LOAD */
-window.addEventListener("load", () => {
+/* START ACTIVITY */
+function startActivity(){
   const name = localStorage.getItem("playerName");
   const playerId = localStorage.getItem("playerId");
 
-  if(!name || !playerId) return;
+  if(!name || !playerId){
+    alert("Chýba meno hráča!");
+    return;
+  }
 
   // uloz visited
   let visited = JSON.parse(localStorage.getItem("visitedStations") || "[]");
@@ -121,6 +131,7 @@ window.addEventListener("load", () => {
     localStorage.setItem("visitedStations", JSON.stringify(visited));
   }
 
+  // posli score = 1
   const payload = {
     name,
     playerId,
@@ -131,9 +142,11 @@ window.addEventListener("load", () => {
   const url = API + "?" + new URLSearchParams(payload).toString();
 
   fetch(url, {method:"GET", mode:"no-cors"})
-    .then(()=>console.log("✅ score 1 odoslané"))
     .catch(()=>{});
-});
+
+  // otvor Wordwall
+  window.open("https://wordwall.net/resource/63266265/vybran%C3%A9-slov%C3%A1-po-b", "_blank");
+}
 
 /* RETURN */
 function returnToMap(){
