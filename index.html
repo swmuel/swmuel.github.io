@@ -12,12 +12,12 @@
 body{ margin:0; min-height:100vh; display:flex; flex-direction:column; align-items:center; color:white; overflow-x:hidden; background-image:url("https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fi.pinimg.com%2Foriginals%2Ff8%2F9f%2Fa3%2Ff89fa3316c37b3f2479d3301c0a09cd8.jpg&f=1&nofb=1"); background-size: cover; background-position: center; background-attachment: fixed; padding-bottom:20px; }
 body::before{ content:""; position:fixed; inset:0; background:rgba(0,0,0,0.35); z-index:-1; }
 
-/* OVERLAY */
+
 .overlay{ position:fixed; inset:0; background:rgba(0,0,0,0.9); display:flex; align-items:center; justify-content:center; z-index:9999; }
 .overlay-box{ background:#064e3b; padding:25px; border-radius:20px; text-align:center; width:90%; max-width:320px; box-shadow:0 10px 40px rgba(0,0,0,0.6); }
 .overlay-box input{ padding:10px; font-size:16px; border-radius:10px; border:none; margin:15px 0; width:100%; }
 
-/* HEADER */
+
 header{ text-align:center; padding:20px 10px; width:100%; }
 h1{ color:#fbbf24; font-size:24px; }
 
@@ -26,29 +26,28 @@ h1{ color:#fbbf24; font-size:24px; }
 .progress-text{ margin-top:5px; color:#fde68a; font-size:14px; }
 .reset-btn{ margin-top:10px; background:#ef4444; border:none; padding:8px 16px; border-radius:20px; color:white; cursor:pointer; }
 
-/* BOARD */
+
 .board{ width:95vw; max-width:900px; margin-top:20px; padding:20px; border-radius:25px; background:linear-gradient(180deg,#9a6b3f,#7a512c); }
 
-/* GRID */
+
 .map{ display:grid; grid-template-columns:repeat(4,1fr); gap:20px; justify-items:center; }
 
-/* STATION */
+
 .station{ width:70px; height:70px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:26px; cursor:pointer; border:3px solid white; transition:0.2s; }
 .station:active{ transform:scale(0.9); }
 
-/* VISITED */
+
 @keyframes popIn{ 0%{ transform:scale(0.7); opacity:0; } 100%{ transform:scale(1.05); opacity:1; } }
 .station.visited{ box-shadow: 0 0 20px #fbbf24, 0 0 40px #f59e0b; border-color:#fbbf24; transform:scale(1.05); animation: popIn 0.4s ease; }
 
-/* LABEL */
+
 .label{ text-align:center; margin-top:5px; font-size:11px; }
 
-/* EXIT BUTTONS */
 .overlay-box button{ padding:10px 18px; border:none; border-radius:12px; font-weight:bold; cursor:pointer; margin:5px; }
 .overlay-box button:first-of-type{ background:#ef4444; color:white; }
 .overlay-box button:last-of-type{ background:#fbbf24; }
 
-/* RESPONSIVE */
+
 @media (min-width: 600px){ .station{ width:85px; height:85px; font-size:32px; } .label{ font-size:13px; } }
 @media (min-width: 900px){ h1{ font-size:28px; } .station{ width:100px; height:100px; font-size:40px; } .label{ font-size:14px; } .map{ gap:30px; } }
 </style>
@@ -56,7 +55,7 @@ h1{ color:#fbbf24; font-size:24px; }
 
 <body>
 
-<!-- NAME OVERLAY -->
+
 <div id="nameOverlay" class="overlay" style="display:none;">
   <div class="overlay-box">
     <h2>👤 Zadaj meno hráča</h2>
@@ -66,7 +65,7 @@ h1{ color:#fbbf24; font-size:24px; }
   </div>
 </div>
 
-<!-- RESET OVERLAY -->
+
 <div id="resetOverlay" class="overlay" style="display:none;">
   <div class="overlay-box">
     <h2>⚠️ Resetovať hru?</h2>
@@ -103,16 +102,16 @@ const text = document.getElementById("progressText");
 
 let visited = new Set(JSON.parse(localStorage.getItem("visitedStations") || "[]"));
 
-/* NAME */
+
 function initPlayer(){
   let name = localStorage.getItem("playerName");
   let id = localStorage.getItem("playerId");
 
   if(!name){
-    // 🔥 ZOBRAZ OVERLAY IBA AK MENO NEEXISTUJE
+
     document.getElementById("nameOverlay").style.display = "flex";
   } else if(!id){
-    // 🔥 AK NIE JE ID → vytvor ho
+
     id = crypto.randomUUID();
     localStorage.setItem("playerId", id);
   }
@@ -132,12 +131,12 @@ function submitName(){
   document.getElementById("nameOverlay").style.display = "none";
 }
 
-/* ENTER KEY */
+
 document.getElementById("nameInput").addEventListener("keypress", e=>{
   if(e.key === "Enter") submitName();
 });
 
-/* PROGRESS */
+
 function updateProgress(){
   visited.forEach(id=>{
     const el = document.querySelector(`[data-id="${id}"]`);
@@ -148,7 +147,7 @@ function updateProgress(){
   text.innerText = visited.size+" / 8 objavené";
 }
 
-/* NAVIGATION */
+
 stations.forEach(s=>{
   s.addEventListener("click", ()=>{
     const id = s.dataset.id;
@@ -156,12 +155,12 @@ stations.forEach(s=>{
   });
 });
 
-/* RESET */
+
 function openReset(){ document.getElementById("resetOverlay").style.display = "flex"; }
 function closeReset(){ document.getElementById("resetOverlay").style.display = "none"; }
 function confirmReset(){ localStorage.clear(); location.reload(); }
 
-/* START */
+
 initPlayer();
 updateProgress();
 </script>
